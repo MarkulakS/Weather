@@ -1,3 +1,155 @@
-<div class="container">
-    <p>main-page works!</p>
+<div class="container d-flex shadow p-0" id="main">
+
+    <section class="day d-flex-column mx-auto justify-content-center">
+        <div class="search-btn d-flex justify-content-center mt-5">
+            <img class="img-search" src="/assets/icons/search.png" width="25px" height="25px" alt="search-img">
+            <input class="ms-2 ps-2 fs-6 border-0 border-bottom" type="text" placeholder="Search for places ...">
+            <a class="ms-4"><img src="/assets/icons/location.png" width="20px" height="20px" alt="img-location"></a>
+            <!-- Geo API 'https://www.w3schools.com/html/html5_geolocation.asp' -->
+        </div>
+        <div class="day-weather d-flex-column mx-auto mt-5">
+            <div class="img-weather d-flex m-auto justify-content-center">
+                <img src="/assets/icons-colour/sun.png" width="150px" alt="img-sun">
+            </div>
+            <div class="day-info d-flex-column mx-5 mt-3 border-bottom">
+                <p class="temp mb-0">12<sup>°C</sup></p>
+                <p class="day-name fs-5 mt-0">Monday, <span>16:00</span></p>
+            </div>
+            <div class="day-details mx-5">
+                <div class="d-flex align-items-center m-auto mt-3">
+                    <img src="/assets/icons-colour/clouds.png" width="45px" alt="img-clouds">
+                    <p class="my-auto ms-4">Mostly Cloudy</p>
+                </div>
+                <div class="d-flex align-items-center m-auto mt-3">
+                    <img src="/assets/icons-colour/dew-point.png" height="40px" alt="img-water">
+                    <p class="my-auto ms-4">Rain - 30%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="info d-flex">
+        <div class="tab-pills my-2">
+            <div class="nav nav-pills ms-5" id="pills-tab" role="tablist">
+                <button class="nav-link fs-5" id="pills-today-tab" data-bs-toggle="pill" data-bs-target="#pills-today"
+                    type="button" role="tab" aria-controls="pills-today" aria-selected="true">Today</button>
+                <button class="nav-link active fs-5" id="pills-week-tab" data-bs-toggle="pill" data-bs-target="#pills-week"
+                    type="button" role="tab" aria-controls="pills-week" aria-selected="false">Week</button>
+            </div>
+            <div class="tab-content mt-3 mx-3" id="pills-tabContent">
+                <div class="tab-pane fade" id="pills-today" role="tabpanel" aria-labelledby="pills-today-tab">
+
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </div>
+                <div class="tab-pane fade show active" id="pills-week" role="tabpanel" aria-labelledby="pills-week-tab">
+                    <div class="week-daily-tiles d-flex justify-content-center">
+                        <div class="tile-sm d-flex-column text-center my-auto shadow" *ngFor="let tile of dailyInfo">
+                            <p class="day-name">{{tile.day}}</p>
+                            <img class="m-auto" src="{{tile.img}}" alt="weather-img">
+                            <p class="temp">{{tile.dayC}}<sup>°</sup> <span> {{tile.nightC}}<sup>°</sup></span></p>
+                        </div>
+                    </div>
+                    <div class="week-highlights d-flex-column mt-3">
+                        <p class="title-highlights fs-5 mb-0">Today's Highlights</p>
+                        <div class="tiles-container ">
+                            <div class="row" id="row">
+                                <div class="col" id="column">
+                                    <p class="title">UV Index</p>
+                                    <div class="tile-details mb-0 ms-auto">
+                                        <p class="fs-1 text-center">5</p>
+                                    </div>
+                                </div>
+                                <div class="col" id="column">
+                                    <p class="title">Wind Status</p>
+                                    <div class="tile-details">
+                                        <p class="fs-1">7.70<sub class="fs-5"> km/h</sub></p>
+                                        <div class="subtext d-flex-row">
+                                            <img src="/assets/icons-colour/windsock.png"   alt="windsock-img" width="25px" height="25px">
+                                            <span class="ms-2"> WSW</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col" id="column">
+                                    <p class="title">Sunrise & Sunset</p>
+                                    <div class="tile-details sunsets">
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <img src="/assets/icons-colour/sunrise.png" alt="sunrise-img" width="50px" height="50px">
+                                            </div>
+                                            <div class="col-7 m-auto ms-0">
+                                                <span>6:35 AM</span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <img src="/assets/icons-colour/sunset.png" alt="sunset-img" width="50px" height="50px">
+                                            </div>
+                                            <div class="col-7 m-auto ms-0">
+                                                <span>5:42 PM</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="row">
+                                <div class="col" id="column">
+                                    <p class="title">Humidity</p>
+                                    <div class="tile-details-2">
+                                        <div class="row">
+                                            <div class="col">
+                                                <p class="fs-1">12<sup class="fs-5">%</sup></p>
+                                                <div class="subtext">
+                                                    <span>Normal </span>
+                                                    <img src="/assets/icons-colour/yes.png" width="25px" height="25px" alt="yes-img">
+                                                </div>
+                                            </div>
+                                            <div class="col mt-2">
+                                                <img src="/assets/icons-colour/moisture.png" width="75px" height="75px" alt="moisture-img">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col" id="column">
+                                    <p class="title">Visibility</p>
+                                    <div class="tile-details-2">
+                                        <div class="row">
+                                            <div class="col">
+                                                <p class="fs-1">5.2<sub class="fs-5"> km</sub></p>
+                                                <div class="subtext">
+                                                    <span>Avarage </span>
+                                                    <img src="/assets/icons-colour/medium.png" width="25px" height="25px" alt="medium-img">
+                                                </div>
+                                            </div>
+                                            <div class="col mt-2">
+                                                <img src="/assets/icons-colour/map.png" width="75px" height="75px" alt="map-img">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col" id="column">
+                                    <p class="title">Air Quality</p>
+                                    <div class="tile-details-2">
+                                        <div class="row">
+                                            <div class="col-7">
+                                                <p class="fs-1">105</p>
+                                                <div class="subtext">
+                                                    <span>Unhealthy </span>
+                                                    <img src="/assets/icons-colour/no.png" width="25px" height="25px" alt="no-img">
+                                                </div>
+                                            </div>
+                                            <div class="col mt-1">
+                                                <img class="image" src="/assets/icons-colour/quality.png" width="75px" height="75px" alt="quality-img">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
 </div>
