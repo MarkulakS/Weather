@@ -3,9 +3,15 @@
     <section class="day d-flex-column mx-auto justify-content-center">
         <div class="search-btn d-flex justify-content-center mt-5">
             <img class="img-search" src="/assets/icons/search.png" width="25px" height="25px" alt="search-img">
-            <input class="ms-2 ps-2 fs-6 border-0 border-bottom" type="text" placeholder="Search for places ...">
-            <a class="ms-4"><img src="/assets/icons/location.png" width="20px" height="20px" alt="img-location"></a>
+            <input [(ngModel)]="inputText" (input)="onInput($event)" class="ms-2 ps-2 fs-6 border-0 border-bottom" type="text" placeholder="Search for places ...">
+            <a class="ms-4"><img src="/assets/icons-colour/crosshair.png" width="20px" height="20px" alt="img-location"></a>
+            
             <!-- Geo API 'https://www.w3schools.com/html/html5_geolocation.asp' -->
+        </div>
+        <div class="cityList shadow mt-1" *ngIf="citiesList.length > 0">
+            <ul class="ps-0" >
+                <li class="border-bottom my-2 ps-4" *ngFor="let city of citiesList"><a (click)="chosenCity(city.name)">{{city.name}}</a></li>
+            </ul>
         </div>
         <div class="day-weather d-flex-column mx-auto mt-5">
             <div class="img-weather d-flex m-auto justify-content-center">
@@ -38,7 +44,7 @@
             </div>
             <div class="tab-content mt-3 mx-3" id="pills-tabContent">
                 <div class="tab-pane fade" id="pills-today" role="tabpanel" aria-labelledby="pills-today-tab">
-
+                    <h1>{{cityName}}</h1>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                 </div>
                 <div class="tab-pane fade show active" id="pills-week" role="tabpanel" aria-labelledby="pills-week-tab">

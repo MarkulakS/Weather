@@ -1,4 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-page',
@@ -7,9 +11,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MainPageComponent implements OnInit {
 
-  constructor() { }
+  inputText = '';
+  citiesList: any[]= [];
+  cityName: string[] = [];
+  cityFullName: string = '';
+  cityId: string = '';
+
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
+    // this.fetchCitiesData();
   }
 
   dailyInfo = [
@@ -21,5 +32,59 @@ export class MainPageComponent implements OnInit {
     { day: 'Fri', img: '/assets/icons-colour/storm.png', dayC: '4', nightC: '-4' },
     { day: 'Sat', img: '/assets/icons-colour/partly-cloudy.png', dayC: '3', nightC: '-3' }
   ]
+
+  API_CITIES = 'https://api.teleport.org/api/cities/?search=';
+
+  onInput(event: any): void {
+    const inputValue = event.target.value.trim();
+
+    if (inputValue.length >= 2) {
+      this.getCities(inputValue).forEach(el => {
+        // console.log(el);
+        // console.log(this.citiesList);
+      });
+    } else {
+      this.citiesList = [];
+    } 
+  }
+
+  getCities(query: string): Observable<any> {
+    return this.http.get(this.API_CITIES + query).pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((res: any) => {
+        if (res._embedded && res._embedded['city:search-results']) {
+          // this.citiesList = this.extractCitiesData(res._embedded['city:search-results'].name);
+          // console.log(this.extractCitiesData(res._embedded['city:search-results'].forEach((el:any) => el.name)));
+          this.citiesList = this.extractCitiesData(res._embedded['city:search-results']);
+          return this.citiesList;
+        } else {
+          return of([]); // Pusta tablica w przypadku braku danych
+        }
+      }),
+      catchError((error: any) => {
+        console.error('Błąd w czasie pobierania danych:', error);
+        return of([]); // Obsługa błędów i zwracanie pustej tablicy
+      })
+    );
+  }
+
+  private extractCitiesData(data: any[]): any[] {
+    const result: any[] = [];
+  
+    data.forEach((item: any) => {
+      result.push({ name: item.matching_full_name });
+    });
+  
+    return result;
+  }
+
+  chosenCity(city: string) {
+    console.log("Wybrane miasto: " + city);
+    this.cityFullName = city;
+    this.cityName = city.split(",", 1);
+    this.inputText = '';
+    this.citiesList = [];
+  }
 
 }
