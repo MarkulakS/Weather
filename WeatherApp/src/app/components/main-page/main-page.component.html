@@ -4,7 +4,7 @@
         <div class="search-btn d-flex justify-content-center mt-5">
             <img class="img-search" src="/assets/icons/search.png" width="25px" height="25px" alt="search-img">
             <input [(ngModel)]="inputText" (input)="onInput($event)" class="ms-2 ps-2 fs-6 border-0 border-bottom" type="text" placeholder="Search for places ...">
-            <a class="ms-4"><img src="/assets/icons-colour/crosshair.png" width="20px" height="20px" alt="img-location"></a>
+            <a class="ms-4" (click)="getLocation()"><img src="/assets/icons-colour/crosshair.png" width="20px" height="20px" alt="img-location"></a>
             
             <!-- Geo API 'https://www.w3schools.com/html/html5_geolocation.asp' -->
         </div>
