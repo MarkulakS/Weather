@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { GeocodingServiceService } from 'src/app/service/geocoding-service.service';
 
 @Component({
   selector: 'app-main-page',
@@ -18,6 +19,8 @@ export class MainPageComponent implements OnInit {
   cityFullName = '';
   cityId = '' || '2643743';
   photoLink = '';
+  latituteGPS = 0;
+  longitudeGPS = 0;
 
   currentTemp = 0;
   feelsLike = 0;
@@ -43,7 +46,7 @@ export class MainPageComponent implements OnInit {
     nightC: number;
   }[] = [];
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
@@ -53,11 +56,13 @@ export class MainPageComponent implements OnInit {
   API_CITIES = 'https://api.teleport.org/api/cities/?search=';
 
   API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
-  API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
+  private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
   API_AIR = '&aqi=yes'
   API_DAYS = '&days=7'
 
   getApiWeather(city: string) {
+    this.weekInfo = [];
+
     const URL = this.API_WEATHER + this.API_WEATHER_KEY + '&q=' + city + this.API_AIR + this.API_DAYS;
 
     this.http.get(URL).subscribe(
@@ -100,6 +105,49 @@ export class MainPageComponent implements OnInit {
     )
   }
 
+  getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => { 
+          // console.log("Got position", position.coords);
+          this.latituteGPS = position.coords.latitude; 
+          this.longitudeGPS = position.coords.longitude;
+          this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
+            (data: any) => {
+              const fullAddress = data.results[0].formatted;
+              const parts = fullAddress.split(',', 3)[1].split(' ', 8);
+              this.cityName = parts.slice(2).toString();
+              this.getApiWeather(this.cityName);
+            },
+            (error) => {
+              console.log("Error with download data from GEO_API: "+error);
+            }
+          )
+        },
+        (error) => {
+          console.log("Error with downloading location: "+error);
+
+// Toast handle error
+          // switch(error.code) {
+          //   case error.PERMISSION_DENIED:
+          //     x.innerHTML = "User denied the request for Geolocation."
+          //     break;
+          //   case error.POSITION_UNAVAILABLE:
+          //     x.innerHTML = "Location information is unavailable."
+          //     break;
+          //   case error.TIMEOUT:
+          //     x.innerHTML = "The request to get user location timed out."
+          //     break;
+          //   case error.UNKNOWN_ERROR:
+          //     x.innerHTML = "An unknown error occurred."
+          //     break;
+          // }
+        }
+      );
+    } else {
+      console.log("Geolocation is not supported by this browser.");
+    }
+  }
 
   // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
   // API_FORECAST_WEATHER = 'http://api.openweathermap.org/data/2.5/forecast?q=';
@@ -167,7 +215,6 @@ export class MainPageComponent implements OnInit {
   chosenCity(city: string) {
     this.cityFullName = city;
     this.cityName = city.split(",", 1).toString();
-    this.weekInfo = [];
     this.getApiWeather(this.cityName);
     this.inputText = '';
     this.citiesList = [];
