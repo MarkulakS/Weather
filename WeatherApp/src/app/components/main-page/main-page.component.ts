@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -9,31 +9,104 @@ import { catchError } from 'rxjs/operators';
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.scss']
 })
+
 export class MainPageComponent implements OnInit {
 
   inputText = '';
   citiesList: any[]= [];
-  cityName: string[] = [];
-  cityFullName: string = '';
-  cityId: string = '';
+  cityName = '' || 'London';
+  cityFullName = '';
+  cityId = '' || '2643743';
+  photoLink = '';
+
+  currentTemp = 0;
+  feelsLike = 0;
+  localDay = '' || '?';
+  localTime = 0 || '?';
+  description = '' || '?';
+  rain = 0 || '?';
+  uv = 0 || '?';
+  windSpeed = 0 || '?';
+  windDirection = '' || '?';
+  sunrise = '' || '?';
+  sunset = '' || '?';
+  humidity = 0 || '?';
+  visibility = 0 || '?';
+  minTemp = 0 || '?';
+  air = 0 || '?';
+  airIndex = 0 || '?';
+
+  weekInfo: {
+    day: string;
+    img: string;
+    dayC: number;
+    nightC: number;
+  }[] = [];
 
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    // this.fetchCitiesData();
+    this.getApiWeather(this.cityName);
+    // this.getCityPhoto(this.cityId);
   }
 
-  dailyInfo = [
-    { day: 'Sun', img: '/assets/icons-colour/sun.png', dayC: '15', nightC: '3' },
-    { day: 'Mon', img: '/assets/icons-colour/clouds.png', dayC: '12', nightC: '7' },
-    { day: 'Tue', img: '/assets/icons-colour/rain-cloud.png', dayC: '9', nightC: '7' },
-    { day: 'Wed', img: '/assets/icons-colour/rain.png', dayC: '8', nightC: '-1' },
-    { day: 'Thu', img: '/assets/icons-colour/sun.png', dayC: '5', nightC: '-2' },
-    { day: 'Fri', img: '/assets/icons-colour/storm.png', dayC: '4', nightC: '-4' },
-    { day: 'Sat', img: '/assets/icons-colour/partly-cloudy.png', dayC: '3', nightC: '-3' }
-  ]
-
   API_CITIES = 'https://api.teleport.org/api/cities/?search=';
+
+  API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
+  API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
+  API_AIR = '&aqi=yes'
+  API_DAYS = '&days=7'
+
+  getApiWeather(city: string) {
+    const URL = this.API_WEATHER + this.API_WEATHER_KEY + '&q=' + city + this.API_AIR + this.API_DAYS;
+
+    this.http.get(URL).subscribe(
+      (res: any) => {
+        console.log(res);
+        this.currentTemp = Math.floor(res.current.temp_c);
+        this.feelsLike = Math.floor(res.current.feelslike_c);
+        this.localTime = this.changeFormatDate(res.location.localtime_epoch);
+        this.description = res.current.condition.text;
+        this.rain = res.current.precip_mm;
+        this.uv = res.current.uv;
+        this.windSpeed = res.current.wind_kph;
+        this.windDirection = res.current.wind_dir;
+        this.humidity = res.current.humidity;
+        this.visibility = res.current.vis_km;
+        this.air = res.current.air_quality.co.toFixed(0);
+        this.airIndex = res.current.air_quality['"us-epa-index"'];
+        this.sunrise = res.forecast.forecastday[0].astro.sunrise;
+        this.sunset = res.forecast.forecastday[0].astro.sunset;
+        // pobrac id chmur
+
+        for(let i=0; i<=7; i++) {
+          let name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
+          let img_src = '/assets/icons-colour/sun.png';
+          // przerzucic do funkcji ktora wybiera ktory img wyswietlic
+          let dayC = Math.floor(res.forecast.forecastday[i].day.maxtemp_c);
+          let nightC = Math.floor(res.forecast.forecastday[i].day.mintemp_c);
+
+          this.weekInfo.push({
+            day: name,
+            img: img_src,
+            dayC: dayC,
+            nightC: nightC
+          })
+        }
+      },
+      (error) => {
+        console.error('Error when downloading data:', error);
+      }
+    )
+  }
+
+
+  // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
+  // API_FORECAST_WEATHER = 'http://api.openweathermap.org/data/2.5/forecast?q=';
+  // API_DAYS = '&cnt=1';
+  // API_FORECAST_KEY = '&appid=66bcdad6e0d46da6a6d46283f4e3bad9';
+  // API_UNITS = '&units=metric'
+  API_CITY_ID = 'https://api.teleport.org/api/cities/geonameid:';
 
   onInput(event: any): void {
     const inputValue = event.target.value.trim();
@@ -63,7 +136,7 @@ export class MainPageComponent implements OnInit {
         }
       }),
       catchError((error: any) => {
-        console.error('Błąd w czasie pobierania danych:', error);
+        console.error('Error when downloading data:', error);
         return of([]); // Obsługa błędów i zwracanie pustej tablicy
       })
     );
@@ -79,12 +152,51 @@ export class MainPageComponent implements OnInit {
     return result;
   }
 
+  getCityPhoto(city: string) {
+    this.http.get(this.API_CITY_ID + city).subscribe(
+      (res: any) => {
+        this.photoLink = res._links['city:urban_area'].href;
+        console.log(res._links['city:urban_area'].href);
+      },
+      (error) => {
+        console.error('Error when downloading data:', error);
+      }
+    )
+  }
+
   chosenCity(city: string) {
-    console.log("Wybrane miasto: " + city);
     this.cityFullName = city;
-    this.cityName = city.split(",", 1);
+    this.cityName = city.split(",", 1).toString();
+    this.weekInfo = [];
+    this.getApiWeather(this.cityName);
     this.inputText = '';
     this.citiesList = [];
+  }
+
+  changeFormatDate(date: number) {
+    const utcDate = new Date(date * 1000);
+    const formattedTime = new Intl.DateTimeFormat('en-US', {
+      hour12: true, 
+      hour: 'numeric',
+      minute: 'numeric'
+    }).format(utcDate);
+
+    const formattedDay = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long'
+    }).format(utcDate);
+    this.localDay = formattedDay;
+
+    return formattedTime;
+  }
+
+  changeDayName(date: number) {
+    const utcDate = new Date(date * 1000);
+
+    const formattedDay = new Intl.DateTimeFormat('en-US', {
+      weekday: 'short'
+    }).format(utcDate);
+
+    return formattedDay;
   }
 
 }
