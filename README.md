@@ -1,5 +1,4 @@
 # Weather pl
-Weather application with weather and country API
 <h4>Language: <a href="#en">EN</a></h4>
 
 <h2>Opis</h2>
