@@ -9,7 +9,7 @@ Przy pracy nad projektem, przede wszystkim nauczyłem się korzystać z RESTful 
 </p>
 
 ## Strona w trakcie rozbudowy
-## Możesz ją sprawdzić pobierając repozytorium lub wchodząc na stronę: <a href="https://climespot.netlify.app>https://climespot.netlify.app</a>
+## Możesz ją sprawdzić pobierając repozytorium lub wchodząc na stronę: <a href="https://climespot.netlify.app">https://climespot.netlify.app</a>
 
 ## Funkcje
 - **Wyszukiwanie Miasta:** Korzystając z <a href="https://developers.teleport.org/api/">Teleport API</a>, użytkownik może łatwo wyszukać dowolne miasto na świecie i sprawdzić aktualną pogodę.
@@ -54,7 +54,7 @@ While working on the project, I primarily learned how to use RESTful APIs.
 </p>
 
 ## Site under expansion
-## You can check it by downloading repo or by entering on site: <a href="https://climespot.netlify.app>https://climespot.netlify.app</a>
+## You can check it by downloading repo or by entering on site: <a href="https://climespot.netlify.app">https://climespot.netlify.app</a>
 
 ## Features
 - **City Search:** Utilizing the <a href="https://developers.teleport.org/api/">Teleport API</a>, users can easily search for any city worldwide and check the current weather.
