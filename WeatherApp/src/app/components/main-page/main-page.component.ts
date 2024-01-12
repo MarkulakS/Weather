@@ -4,6 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { GeocodingServiceService } from 'src/app/service/geocoding-service.service';
+import { GooglePlacesService } from 'src/app/service/google-places.service';
 
 @Component({
   selector: 'app-main-page',
@@ -13,14 +14,43 @@ import { GeocodingServiceService } from 'src/app/service/geocoding-service.servi
 
 export class MainPageComponent implements OnInit {
 
+  cityInfo: {
+    inputText: string;
+    citiesList: any[];
+    cityName: string;
+    cityId: number;
+    photoLink: string;
+    latitudeGPS: number;
+    LongitudeGPS: number;
+
+  }[] = []
+
   inputText = '';
   citiesList: any[]= [];
   cityName = '' || 'London';
-  cityFullName = '';
+  cityFullName = 'England, United Kingdom';
   cityId = '' || '2643743';
   photoLink = '';
   latituteGPS = 0;
   longitudeGPS = 0;
+
+  weatherInfo: {
+    currentTemp: number;
+    feelsLike: number;
+    localDay: string;
+    localTime: number;
+    description: string;
+    rain: number;
+    uv: number;
+    windSpeed: number;
+    sunrise: string;
+    sunset: string;
+    humidity: number;
+    visibility: number;
+    minTemp: number;
+    air: number;
+    airIndex: number;
+  }[] = [];
 
   currentTemp = 0;
   feelsLike = 0;
@@ -46,16 +76,19 @@ export class MainPageComponent implements OnInit {
     nightC: number;
   }[] = [];
 
-  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
+  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService, 
+    private photoService: GooglePlacesService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
+    // this.getPhoto(this.cityName);
+
     // this.getCityPhoto(this.cityId);
   }
 
   API_CITIES = 'https://api.teleport.org/api/cities/?search=';
 
-  API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
+  API_WEATHER = 'https://api.weatherapi.com/v1/forecast.json?key=';
   private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
   API_AIR = '&aqi=yes'
   API_DAYS = '&days=7'
@@ -84,7 +117,7 @@ export class MainPageComponent implements OnInit {
         this.sunset = res.forecast.forecastday[0].astro.sunset;
         // pobrac id chmur
 
-        for(let i=0; i<=7; i++) {
+        for(let i=0; i<=6; i++) {
           let name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
           let img_src = '/assets/icons-colour/sun.png';
           // przerzucic do funkcji ktora wybiera ktory img wyswietlic
@@ -115,6 +148,7 @@ export class MainPageComponent implements OnInit {
           this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
             (data: any) => {
               const fullAddress = data.results[0].formatted;
+              this.cityFullName = fullAddress.split(',', 3)[2];
               const parts = fullAddress.split(',', 3)[1].split(' ', 8);
               this.cityName = parts.slice(2).toString();
               this.getApiWeather(this.cityName);
@@ -148,6 +182,27 @@ export class MainPageComponent implements OnInit {
       console.log("Geolocation is not supported by this browser.");
     }
   }
+
+  
+  getPhoto(city: string) {
+    this.photoService.getReferencesPhotoByName(city).subscribe(
+      (res: any) => {
+        console.log("PhotoService: "+res.results[0]);
+        // console.log("PhotoService: "+res.results[0].photos[0].photo_reference);
+
+        this.photoService.getCityPhoto(res.results[0].photos[0].photo_reference).subscribe(
+          (photoUrl: any) => {
+            console.log(photoUrl); 
+          },
+          (error) => {console.log('Error when dowloading photo from Places API. '+error);}
+        )
+      },
+      (error) => {
+        console.log('Error when dowloading data from Places API. '+error);
+      }
+    )
+  }
+
 
   // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
   // API_FORECAST_WEATHER = 'http://api.openweathermap.org/data/2.5/forecast?q=';
@@ -213,7 +268,7 @@ export class MainPageComponent implements OnInit {
   }
 
   chosenCity(city: string) {
-    this.cityFullName = city;
+    this.cityFullName = city.split(",").slice(1).toString();
     this.cityName = city.split(",", 1).toString();
     this.getApiWeather(this.cityName);
     this.inputText = '';
