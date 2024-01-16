@@ -29,5 +29,13 @@
 <a target="_blank" href="https://icons8.com/icon/gutwVEcIEFpc/quality">Quality</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 <a target="_blank" href="https://icons8.com/icon/ddHq816KEsxh/ok">Ok</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 <a target="_blank" href="https://icons8.com/icon/w4FB8rjMCbBg/no-entry">No</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/85POYJRwNG7b/rain-cloud">Rain Cloud</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/EB2AJBx1rlRy/sleet">Sleet</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/RWaaTjQ4JGUu/heavy-rain">Heavy Rain</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/S93vAcPgOhSv/snow-storm">Snow Storm</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/Z9JnS9fmoINF/dust">Dust</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/nig7JUnodKd8/stormy-weather">Stormy Weather</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a target="_blank" href="https://icons8.com/icon/2CHWykUDhcK3/winter">Winter</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
 <a target="_blank" href="https://icons8.com/icon/Bt2Q84jlYVhX/medium-priority">Medium Priority</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 <a target="_blank" href="https://icons8.com/icon/60991/my-location">crosshair</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

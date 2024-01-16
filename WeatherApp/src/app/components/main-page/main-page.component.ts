@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaderResponse, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
@@ -38,22 +38,29 @@ export class MainPageComponent implements OnInit {
   minTemp = 0 || '?';
   air = 0 || '?';
   airIndex = 0 || '?';
+  weatherCurrentCode = 0;
+  weatherCurrentIcon = 'sun';
+  forecastCode = 0;
 
   weekInfo: {
     day: string;
     img: string;
     dayC: number;
     nightC: number;
+    // weatherId: number;
   }[] = [];
 
   constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
+    this.getCitiesApi('Lo');
     // this.getCityPhoto(this.cityId);
   }
 
   API_CITIES = 'https://api.teleport.org/api/cities/?search=';
+  API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
+  private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==G7KinKq6myjl6To8';
 
   API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
   private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
@@ -82,11 +89,14 @@ export class MainPageComponent implements OnInit {
         this.airIndex = res.current.air_quality['"us-epa-index"'];
         this.sunrise = res.forecast.forecastday[0].astro.sunrise;
         this.sunset = res.forecast.forecastday[0].astro.sunset;
+        this.weatherCurrentCode = res.current.condition.code;
+        this.weatherCurrentIcon = this.chooseWeatherIcon(this.weatherCurrentCode);
         // pobrac id chmur
 
-        for(let i=0; i<=7; i++) {
+        for(let i=0; i<=6; i++) {
           let name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
           let img_src = '/assets/icons-colour/sun.png';
+          // let code = res.forecast[i].condition.code;
           // przerzucic do funkcji ktora wybiera ktory img wyswietlic
           let dayC = Math.floor(res.forecast.forecastday[i].day.maxtemp_c);
           let nightC = Math.floor(res.forecast.forecastday[i].day.mintemp_c);
@@ -95,7 +105,8 @@ export class MainPageComponent implements OnInit {
             day: name,
             img: img_src,
             dayC: dayC,
-            nightC: nightC
+            nightC: nightC,
+            // weatherId: weatherId          
           })
         }
       },
@@ -169,11 +180,24 @@ export class MainPageComponent implements OnInit {
     } 
   }
 
+  getCitiesApi(query: string){
+    const headers = new HttpHeaders({
+      'X-Api-Key': this.NINJA_KEY
+    });
+    const options = {headers};
+    this.http.get(`https://api.api-ninjas.com/v1/city?name=${query}`, options).subscribe(
+      (data) => {console.log(data)},
+      error => {
+        console.error('Błąd podczas pobierania danych:', error);
+      });
+  }
+
   getCities(query: string): Observable<any> {
     return this.http.get(this.API_CITIES + query).pipe(
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((res: any) => {
+        console.log(res);
         if (res._embedded && res._embedded['city:search-results']) {
           // this.citiesList = this.extractCitiesData(res._embedded['city:search-results'].name);
           // console.log(this.extractCitiesData(res._embedded['city:search-results'].forEach((el:any) => el.name)));
@@ -246,4 +270,26 @@ export class MainPageComponent implements OnInit {
     return formattedDay;
   }
 
+  chooseWeatherIcon(code: number) {
+    let weather = '';
+    if(code === 1000) {weather = 'sun';};
+    if(code === 1003) {weather = 'partly-cloudy';};
+    if(code === 1006 || code === 1009) {weather = 'clouds';};
+    if(code === 1030 || code === 1135 || code === 1147) {weather = 'mist';};
+    if(code === 1063 || code === 1192 || code === 1240 || code === 1243 || code === 1246) {weather = 'patchy-rain';};
+    if(code === 1066 || code === 1210 || code === 1216 || code === 1222 || code === 1255 || code === 1258 || code === 1261 || code === 1264) {weather = 'patchy-snow';};
+    if(code === 1069 || code === 1249 || code === 1252) {weather = 'patchy-snow-rain';};
+    if(code === 1072 || code === 1168 || code === 1171 || code === 1198 || code === 1201) {weather = 'snow-storm';};
+    if(code === 1087 || code === 1273) {weather = 'stormy-weather';};
+    if(code === 1276) {weather = 'storm';};
+    if(code === 1282) {weather = 'stormy-snow';};
+    if(code === 1279) {weather = 'stormy-sun-snow';};
+    if(code === 1114 || code === 1117 || code === 1213 || code === 1219  || code === 1225  || code === 1237) {weather = 'snow';};
+    if(code === 1150 || code === 1153 || code === 1180 || code === 1183 || code === 1186 || code === 1189) {weather = 'rain';};
+    if(code === 1195) {weather = 'heavy-reain';};
+    if(code === 1204 || code === 1207) {weather = 'sleet';};
+    
+    console.log("Weather: "+weather);
+    return weather;
+  }
 }
