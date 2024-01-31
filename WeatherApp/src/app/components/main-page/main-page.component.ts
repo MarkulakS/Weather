@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaderResponse, HttpHeaders } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, Injectable, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -33,34 +33,36 @@ export class MainPageComponent implements OnInit {
   windDirection = '' || '?';
   sunrise = '' || '?';
   sunset = '' || '?';
-  humidity = 0 || '?';
-  visibility = 0 || '?';
+  humidity = 0 ;
+  humidityStatus = '' || '?';
+  humidityStatusIcon = '' || 'yes';
+  visibility = 0;
+  visibilityStatus = '' || '?';
+  visibilityStatusIcon = '' || 'yes';
   minTemp = 0 || '?';
   air = 0 || '?';
-  airIndex = 0 || '?';
+  airIndex = 0;
+  airStatus = '' || '?';
+  airStatusIcon = '' || 'yes';
   weatherCurrentCode = 0;
   weatherCurrentIcon = 'sun';
   forecastCode = 0;
 
   weekInfo: {
     day: string;
-    img: string;
     dayC: number;
     nightC: number;
-    // weatherId: number;
+    weatherCode: string;
   }[] = [];
 
   constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
-    this.getCitiesApi('Lo');
-    // this.getCityPhoto(this.cityId);
   }
 
-  API_CITIES = 'https://api.teleport.org/api/cities/?search=';
-  API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
-  private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==G7KinKq6myjl6To8';
+  // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
+  private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==jFLheXteHMle6enk';
 
   API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
   private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
@@ -74,7 +76,7 @@ export class MainPageComponent implements OnInit {
 
     this.http.get(URL).subscribe(
       (res: any) => {
-        console.log(res);
+      console.log(res);
         this.currentTemp = Math.floor(res.current.temp_c);
         this.feelsLike = Math.floor(res.current.feelslike_c);
         this.localTime = this.changeFormatDate(res.location.localtime_epoch);
@@ -84,29 +86,34 @@ export class MainPageComponent implements OnInit {
         this.windSpeed = res.current.wind_kph;
         this.windDirection = res.current.wind_dir;
         this.humidity = res.current.humidity;
+        this.setHumidityStatus(this.humidity);
         this.visibility = res.current.vis_km;
+        this.setVisibilityStatus(this.visibility);
         this.air = res.current.air_quality.co.toFixed(0);
-        this.airIndex = res.current.air_quality['"us-epa-index"'];
+        this.airIndex = res.current.air_quality["us-epa-index"];
+        this.setAirStatus(this.airIndex);
         this.sunrise = res.forecast.forecastday[0].astro.sunrise;
         this.sunset = res.forecast.forecastday[0].astro.sunset;
         this.weatherCurrentCode = res.current.condition.code;
         this.weatherCurrentIcon = this.chooseWeatherIcon(this.weatherCurrentCode);
-        // pobrac id chmur
 
-        for(let i=0; i<=6; i++) {
-          let name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
-          let img_src = '/assets/icons-colour/sun.png';
-          // let code = res.forecast[i].condition.code;
-          // przerzucic do funkcji ktora wybiera ktory img wyswietlic
+        for(let i=0; i<res.forecast.forecastday.length; i++) {
+          let name = '';
+          if(i === 0) { 
+            name = 'Tday';
+          }else {
+            name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
+          }
+          let code = res.forecast.forecastday[i].day.condition.code;
+          let weatherCode = this.chooseWeatherIcon(code);
           let dayC = Math.floor(res.forecast.forecastday[i].day.maxtemp_c);
           let nightC = Math.floor(res.forecast.forecastday[i].day.mintemp_c);
 
           this.weekInfo.push({
             day: name,
-            img: img_src,
             dayC: dayC,
             nightC: nightC,
-            // weatherId: weatherId          
+            weatherCode: weatherCode          
           })
         }
       },
@@ -120,7 +127,6 @@ export class MainPageComponent implements OnInit {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => { 
-          // console.log("Got position", position.coords);
           this.latituteGPS = position.coords.latitude; 
           this.longitudeGPS = position.coords.longitude;
           this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
@@ -160,18 +166,14 @@ export class MainPageComponent implements OnInit {
     }
   }
 
-  // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
-  // API_FORECAST_WEATHER = 'http://api.openweathermap.org/data/2.5/forecast?q=';
-  // API_DAYS = '&cnt=1';
-  // API_FORECAST_KEY = '&appid=66bcdad6e0d46da6a6d46283f4e3bad9';
-  // API_UNITS = '&units=metric'
-  API_CITY_ID = 'https://api.teleport.org/api/cities/geonameid:';
+  // google maps
+
 
   onInput(event: any): void {
     const inputValue = event.target.value.trim();
 
     if (inputValue.length >= 2) {
-      this.getCities(inputValue).forEach(el => {
+      this.getNinjaApi(inputValue).forEach(el => {
         // console.log(el);
         // console.log(this.citiesList);
       });
@@ -180,35 +182,26 @@ export class MainPageComponent implements OnInit {
     } 
   }
 
-  getCitiesApi(query: string){
+  getNinjaApi(query: string): Observable<any> {
+    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=10`;
     const headers = new HttpHeaders({
       'X-Api-Key': this.NINJA_KEY
-    });
+    })
     const options = {headers};
-    this.http.get(`https://api.api-ninjas.com/v1/city?name=${query}`, options).subscribe(
-      (data) => {console.log(data)},
-      error => {
-        console.error('Błąd podczas pobierania danych:', error);
-      });
-  }
 
-  getCities(query: string): Observable<any> {
-    return this.http.get(this.API_CITIES + query).pipe(
+    return this.http.get(url, options).pipe(
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((res: any) => {
-        console.log(res);
-        if (res._embedded && res._embedded['city:search-results']) {
-          // this.citiesList = this.extractCitiesData(res._embedded['city:search-results'].name);
-          // console.log(this.extractCitiesData(res._embedded['city:search-results'].forEach((el:any) => el.name)));
-          this.citiesList = this.extractCitiesData(res._embedded['city:search-results']);
+        if (res) {
+          this.citiesList = this.extractCitiesData(res);
           return this.citiesList;
         } else {
           return of([]); // Pusta tablica w przypadku braku danych
         }
       }),
       catchError((error: any) => {
-        console.error('Error when downloading data:', error);
+        console.error('Error when downloading data from NinjaApi:', error);
         return of([]); // Obsługa błędów i zwracanie pustej tablicy
       })
     );
@@ -218,23 +211,23 @@ export class MainPageComponent implements OnInit {
     const result: any[] = [];
   
     data.forEach((item: any) => {
-      result.push({ name: item.matching_full_name });
+      result.push({ name: item.name, country: item.country });
     });
   
     return result;
   }
 
-  getCityPhoto(city: string) {
-    this.http.get(this.API_CITY_ID + city).subscribe(
-      (res: any) => {
-        this.photoLink = res._links['city:urban_area'].href;
-        console.log(res._links['city:urban_area'].href);
-      },
-      (error) => {
-        console.error('Error when downloading data:', error);
-      }
-    )
-  }
+  // getCityPhoto(city: string) {
+  //   this.http.get(this.API_CITY_ID + city).subscribe(
+  //     (res: any) => {
+  //       this.photoLink = res._links['city:urban_area'].href;
+  //       console.log(res._links['city:urban_area'].href);
+  //     },
+  //     (error) => {
+  //       console.error('Error when downloading data:', error);
+  //     }
+  //   )
+  // }
 
   chosenCity(city: string) {
     this.cityFullName = city;
@@ -289,7 +282,51 @@ export class MainPageComponent implements OnInit {
     if(code === 1195) {weather = 'heavy-reain';};
     if(code === 1204 || code === 1207) {weather = 'sleet';};
     
-    console.log("Weather: "+weather);
     return weather;
+  }
+
+  setHumidityStatus(humidity: number) {
+    if((humidity >= 0 && humidity < 40) || (humidity >= 90 && humidity < 100))
+    {
+      this.humidityStatus = 'Unhealty';
+      this.humidityStatusIcon = 'no';
+    }else if((humidity >= 40 && humidity < 60) || (humidity >= 80 && humidity < 90)) {
+      this.humidityStatus = 'Average';
+      this.humidityStatusIcon = 'medium';
+    }
+    else if(humidity >= 60 && humidity < 80) {
+      this.humidityStatus = 'Normal';
+      this.humidityStatusIcon = 'yes';
+    }
+  }
+
+  setVisibilityStatus(visibility: number) {
+    if(visibility >= 0 && visibility < 4)
+    {
+      this.visibilityStatus = 'Bad';
+      this.visibilityStatusIcon = 'no';
+    }else if(visibility >= 4 && visibility < 10) {
+      this.visibilityStatus = 'Average';
+      this.visibilityStatusIcon = 'medium';
+    }
+    else if(visibility >= 10) {
+      this.visibilityStatus = 'Good';
+      this.visibilityStatusIcon = 'yes';
+    }
+  }
+
+  setAirStatus(airId: number) {
+    if(airId === 1) {
+      this.airStatus = 'Good';
+      this.airStatusIcon = 'yes';
+    }else if(airId === 2) {
+      this.airStatus = 'Moderate';
+      this.airStatusIcon = 'medium';
+    }else if(airId >= 3) {
+      this.airStatus = 'Unhealty';
+      this.airStatusIcon = 'no';
+    }else {
+      this.airStatus = 'No data';
+    }
   }
 }
