@@ -14,6 +14,8 @@ app.use((req, res, next) => {
     next();
   });
 
+
+
   app.use(googlePlacesApiPath, (req, res) => {
     const options = {
       hostname: 'maps.googleapis.com',
@@ -56,7 +58,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'dist/WeatherApp')));
 
 // Ustaw port serwera Express
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4200;
 app.set('port', port);
 
 // Utwórz serwer HTTP i nasłuchuj na określonym porcie

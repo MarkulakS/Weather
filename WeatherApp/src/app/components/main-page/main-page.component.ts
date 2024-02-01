@@ -4,6 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { GeocodingServiceService } from 'src/app/service/geocoding-service.service';
+import { GooglePlacesService } from 'src/app/service/google-places.service';
 
 @Component({
   selector: 'app-main-page',
@@ -13,14 +14,48 @@ import { GeocodingServiceService } from 'src/app/service/geocoding-service.servi
 
 export class MainPageComponent implements OnInit {
 
+  // cityInfo: {
+  //   inputText: string;
+  //   citiesList: any[];
+  //   cityName: string;
+  //   photoLink: string;
+  //   latitudeGPS: number;
+  //   LongitudeGPS: number;
+
+  // }[] = []
+
   inputText = '';
   citiesList: any[]= [];
   cityName = '' || 'London';
-  cityFullName = '';
-  cityId = '' || '2643743';
-  photoLink = '';
+  cityFullName = 'United Kingdom';
   latituteGPS = 0;
   longitudeGPS = 0;
+
+  // weatherInfo: {
+  //   currentTemp: number;
+  //   feelsLike: number;
+  //   localDay: string;
+  //   localTime: number;
+  //   description: string;
+  //   rain: number;
+  //   uv: number;
+  //   windSpeed: number;
+  //   sunrise: string;
+  //   sunset: string;
+  //   humidity: number;
+  //   humidityStatus: string;
+  //   humidityStatusIcon: string;
+  //   visibility: number;
+  //   visibilityStatus: string;
+  //   visibilityStatusIcon: string;
+  //   minTemp: number;
+  //   air: number;
+  //   airIndex: number;
+  //   airStatus: string;
+  //   airStatusIcon: string;
+  //   weatherCurrentCode: number;
+  //   weatherCurrentIcon: string;
+  // }[] = [];
 
   currentTemp = 0;
   feelsLike = 0;
@@ -46,7 +81,6 @@ export class MainPageComponent implements OnInit {
   airStatusIcon = '' || 'yes';
   weatherCurrentCode = 0;
   weatherCurrentIcon = 'sun';
-  forecastCode = 0;
 
   weekInfo: {
     day: string;
@@ -55,16 +89,18 @@ export class MainPageComponent implements OnInit {
     weatherCode: string;
   }[] = [];
 
-  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
+  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService, 
+    private photoService: GooglePlacesService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
+    // this.getPhoto(this.cityName);
   }
 
   // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
   private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==jFLheXteHMle6enk';
 
-  API_WEATHER = 'http://api.weatherapi.com/v1/forecast.json?key=';
+  API_WEATHER = 'https://api.weatherapi.com/v1/forecast.json?key=';
   private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
   API_AIR = '&aqi=yes'
   API_DAYS = '&days=7'
@@ -80,6 +116,7 @@ export class MainPageComponent implements OnInit {
         this.currentTemp = Math.floor(res.current.temp_c);
         this.feelsLike = Math.floor(res.current.feelslike_c);
         this.localTime = this.changeFormatDate(res.location.localtime_epoch);
+        this.cityFullName = res.location.country;
         this.description = res.current.condition.text;
         this.rain = res.current.precip_mm;
         this.uv = res.current.uv;
@@ -118,7 +155,7 @@ export class MainPageComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Error when downloading data:', error);
+        console.error('Error when downloading weather data:', error);
       }
     )
   }
@@ -132,6 +169,7 @@ export class MainPageComponent implements OnInit {
           this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
             (data: any) => {
               const fullAddress = data.results[0].formatted;
+              this.cityFullName = fullAddress.split(',', 3)[2];
               const parts = fullAddress.split(',', 3)[1].split(' ', 8);
               this.cityName = parts.slice(2).toString();
               this.getApiWeather(this.cityName);
@@ -166,24 +204,45 @@ export class MainPageComponent implements OnInit {
     }
   }
 
-  // google maps
+  
+  // getPhoto(city: string) {
+  //   this.photoService.getReferencesPhotoByName(city).subscribe(
+  //     (res: any) => {
+  //       console.log("PhotoService: "+res.results[0]);
+  //       // console.log("PhotoService: "+res.results[0].photos[0].photo_reference);
 
+  //       this.photoService.getCityPhoto(res.results[0].photos[0].photo_reference).subscribe(
+  //         (photoUrl: any) => {
+  //           console.log(photoUrl); 
+  //         },
+  //         (error) => {console.log('Error when dowloading photo from Places API. '+error);}
+  //       )
+  //     },
+  //     (error) => {
+  //       console.log('Error when dowloading data from Places API. '+error);
+  //     }
+  //   )
+  // }
+
+
+  // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
+  // API_FORECAST_WEATHER = 'http://api.openweathermap.org/data/2.5/forecast?q=';
+  // API_DAYS = '&cnt=1';
+  // API_FORECAST_KEY = '&appid=66bcdad6e0d46da6a6d46283f4e3bad9';
+  // API_UNITS = '&units=metric'
 
   onInput(event: any): void {
     const inputValue = event.target.value.trim();
 
     if (inputValue.length >= 2) {
-      this.getNinjaApi(inputValue).forEach(el => {
-        // console.log(el);
-        // console.log(this.citiesList);
-      });
+      this.getNinjaApi(inputValue).forEach(() => {});
     } else {
       this.citiesList = [];
     } 
   }
 
   getNinjaApi(query: string): Observable<any> {
-    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=10`;
+    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=20`;
     const headers = new HttpHeaders({
       'X-Api-Key': this.NINJA_KEY
     })
@@ -230,7 +289,6 @@ export class MainPageComponent implements OnInit {
   // }
 
   chosenCity(city: string) {
-    this.cityFullName = city;
     this.cityName = city.split(",", 1).toString();
     this.getApiWeather(this.cityName);
     this.inputText = '';
@@ -286,9 +344,9 @@ export class MainPageComponent implements OnInit {
   }
 
   setHumidityStatus(humidity: number) {
-    if((humidity >= 0 && humidity < 40) || (humidity >= 90 && humidity < 100))
+    if(humidity >= 0 && humidity < 40)
     {
-      this.humidityStatus = 'Unhealty';
+      this.humidityStatus = 'Low ';
       this.humidityStatusIcon = 'no';
     }else if((humidity >= 40 && humidity < 60) || (humidity >= 80 && humidity < 90)) {
       this.humidityStatus = 'Average';
@@ -297,6 +355,9 @@ export class MainPageComponent implements OnInit {
     else if(humidity >= 60 && humidity < 80) {
       this.humidityStatus = 'Normal';
       this.humidityStatusIcon = 'yes';
+    }else if(humidity >= 90 && humidity <= 100) {
+      this.humidityStatus = 'High ';
+      this.humidityStatusIcon = 'no';
     }
   }
 
