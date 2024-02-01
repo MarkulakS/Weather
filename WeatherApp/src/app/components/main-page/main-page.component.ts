@@ -1,5 +1,5 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaderResponse, HttpHeaders } from '@angular/common/http';
+import { Component, Injectable, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -63,17 +63,26 @@ export class MainPageComponent implements OnInit {
   windDirection = '' || '?';
   sunrise = '' || '?';
   sunset = '' || '?';
-  humidity = 0 || '?';
-  visibility = 0 || '?';
+  humidity = 0 ;
+  humidityStatus = '' || '?';
+  humidityStatusIcon = '' || 'yes';
+  visibility = 0;
+  visibilityStatus = '' || '?';
+  visibilityStatusIcon = '' || 'yes';
   minTemp = 0 || '?';
   air = 0 || '?';
-  airIndex = 0 || '?';
+  airIndex = 0;
+  airStatus = '' || '?';
+  airStatusIcon = '' || 'yes';
+  weatherCurrentCode = 0;
+  weatherCurrentIcon = 'sun';
+  forecastCode = 0;
 
   weekInfo: {
     day: string;
-    img: string;
     dayC: number;
     nightC: number;
+    weatherCode: string;
   }[] = [];
 
   constructor(private http: HttpClient, private geocodingService: GeocodingServiceService, 
@@ -82,11 +91,11 @@ export class MainPageComponent implements OnInit {
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
     // this.getPhoto(this.cityName);
-
     // this.getCityPhoto(this.cityId);
   }
 
-  API_CITIES = 'https://api.teleport.org/api/cities/?search=';
+  // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
+  private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==jFLheXteHMle6enk';
 
   API_WEATHER = 'https://api.weatherapi.com/v1/forecast.json?key=';
   private API_WEATHER_KEY = '0cecc2efe7ce4f00b06154532240501';
@@ -100,7 +109,7 @@ export class MainPageComponent implements OnInit {
 
     this.http.get(URL).subscribe(
       (res: any) => {
-        console.log(res);
+      console.log(res);
         this.currentTemp = Math.floor(res.current.temp_c);
         this.feelsLike = Math.floor(res.current.feelslike_c);
         this.localTime = this.changeFormatDate(res.location.localtime_epoch);
@@ -110,25 +119,34 @@ export class MainPageComponent implements OnInit {
         this.windSpeed = res.current.wind_kph;
         this.windDirection = res.current.wind_dir;
         this.humidity = res.current.humidity;
+        this.setHumidityStatus(this.humidity);
         this.visibility = res.current.vis_km;
+        this.setVisibilityStatus(this.visibility);
         this.air = res.current.air_quality.co.toFixed(0);
-        this.airIndex = res.current.air_quality['"us-epa-index"'];
+        this.airIndex = res.current.air_quality["us-epa-index"];
+        this.setAirStatus(this.airIndex);
         this.sunrise = res.forecast.forecastday[0].astro.sunrise;
         this.sunset = res.forecast.forecastday[0].astro.sunset;
-        // pobrac id chmur
+        this.weatherCurrentCode = res.current.condition.code;
+        this.weatherCurrentIcon = this.chooseWeatherIcon(this.weatherCurrentCode);
 
-        for(let i=0; i<=6; i++) {
-          let name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
-          let img_src = '/assets/icons-colour/sun.png';
-          // przerzucic do funkcji ktora wybiera ktory img wyswietlic
+        for(let i=0; i<res.forecast.forecastday.length; i++) {
+          let name = '';
+          if(i === 0) { 
+            name = 'Tday';
+          }else {
+            name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
+          }
+          let code = res.forecast.forecastday[i].day.condition.code;
+          let weatherCode = this.chooseWeatherIcon(code);
           let dayC = Math.floor(res.forecast.forecastday[i].day.maxtemp_c);
           let nightC = Math.floor(res.forecast.forecastday[i].day.mintemp_c);
 
           this.weekInfo.push({
             day: name,
-            img: img_src,
             dayC: dayC,
-            nightC: nightC
+            nightC: nightC,
+            weatherCode: weatherCode          
           })
         }
       },
@@ -142,7 +160,6 @@ export class MainPageComponent implements OnInit {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => { 
-          // console.log("Got position", position.coords);
           this.latituteGPS = position.coords.latitude; 
           this.longitudeGPS = position.coords.longitude;
           this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
@@ -215,7 +232,7 @@ export class MainPageComponent implements OnInit {
     const inputValue = event.target.value.trim();
 
     if (inputValue.length >= 2) {
-      this.getCities(inputValue).forEach(el => {
+      this.getNinjaApi(inputValue).forEach(el => {
         // console.log(el);
         // console.log(this.citiesList);
       });
@@ -224,22 +241,26 @@ export class MainPageComponent implements OnInit {
     } 
   }
 
-  getCities(query: string): Observable<any> {
-    return this.http.get(this.API_CITIES + query).pipe(
+  getNinjaApi(query: string): Observable<any> {
+    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=10`;
+    const headers = new HttpHeaders({
+      'X-Api-Key': this.NINJA_KEY
+    })
+    const options = {headers};
+
+    return this.http.get(url, options).pipe(
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((res: any) => {
-        if (res._embedded && res._embedded['city:search-results']) {
-          // this.citiesList = this.extractCitiesData(res._embedded['city:search-results'].name);
-          // console.log(this.extractCitiesData(res._embedded['city:search-results'].forEach((el:any) => el.name)));
-          this.citiesList = this.extractCitiesData(res._embedded['city:search-results']);
+        if (res) {
+          this.citiesList = this.extractCitiesData(res);
           return this.citiesList;
         } else {
           return of([]); // Pusta tablica w przypadku braku danych
         }
       }),
       catchError((error: any) => {
-        console.error('Error when downloading data:', error);
+        console.error('Error when downloading data from NinjaApi:', error);
         return of([]); // Obsługa błędów i zwracanie pustej tablicy
       })
     );
@@ -249,23 +270,23 @@ export class MainPageComponent implements OnInit {
     const result: any[] = [];
   
     data.forEach((item: any) => {
-      result.push({ name: item.matching_full_name });
+      result.push({ name: item.name, country: item.country });
     });
   
     return result;
   }
 
-  getCityPhoto(city: string) {
-    this.http.get(this.API_CITY_ID + city).subscribe(
-      (res: any) => {
-        this.photoLink = res._links['city:urban_area'].href;
-        console.log(res._links['city:urban_area'].href);
-      },
-      (error) => {
-        console.error('Error when downloading data:', error);
-      }
-    )
-  }
+  // getCityPhoto(city: string) {
+  //   this.http.get(this.API_CITY_ID + city).subscribe(
+  //     (res: any) => {
+  //       this.photoLink = res._links['city:urban_area'].href;
+  //       console.log(res._links['city:urban_area'].href);
+  //     },
+  //     (error) => {
+  //       console.error('Error when downloading data:', error);
+  //     }
+  //   )
+  // }
 
   chosenCity(city: string) {
     this.cityFullName = city.split(",").slice(1).toString();
@@ -301,4 +322,70 @@ export class MainPageComponent implements OnInit {
     return formattedDay;
   }
 
+  chooseWeatherIcon(code: number) {
+    let weather = '';
+    if(code === 1000) {weather = 'sun';};
+    if(code === 1003) {weather = 'partly-cloudy';};
+    if(code === 1006 || code === 1009) {weather = 'clouds';};
+    if(code === 1030 || code === 1135 || code === 1147) {weather = 'mist';};
+    if(code === 1063 || code === 1192 || code === 1240 || code === 1243 || code === 1246) {weather = 'patchy-rain';};
+    if(code === 1066 || code === 1210 || code === 1216 || code === 1222 || code === 1255 || code === 1258 || code === 1261 || code === 1264) {weather = 'patchy-snow';};
+    if(code === 1069 || code === 1249 || code === 1252) {weather = 'patchy-snow-rain';};
+    if(code === 1072 || code === 1168 || code === 1171 || code === 1198 || code === 1201) {weather = 'snow-storm';};
+    if(code === 1087 || code === 1273) {weather = 'stormy-weather';};
+    if(code === 1276) {weather = 'storm';};
+    if(code === 1282) {weather = 'stormy-snow';};
+    if(code === 1279) {weather = 'stormy-sun-snow';};
+    if(code === 1114 || code === 1117 || code === 1213 || code === 1219  || code === 1225  || code === 1237) {weather = 'snow';};
+    if(code === 1150 || code === 1153 || code === 1180 || code === 1183 || code === 1186 || code === 1189) {weather = 'rain';};
+    if(code === 1195) {weather = 'heavy-reain';};
+    if(code === 1204 || code === 1207) {weather = 'sleet';};
+    
+    return weather;
+  }
+
+  setHumidityStatus(humidity: number) {
+    if((humidity >= 0 && humidity < 40) || (humidity >= 90 && humidity < 100))
+    {
+      this.humidityStatus = 'Unhealty';
+      this.humidityStatusIcon = 'no';
+    }else if((humidity >= 40 && humidity < 60) || (humidity >= 80 && humidity < 90)) {
+      this.humidityStatus = 'Average';
+      this.humidityStatusIcon = 'medium';
+    }
+    else if(humidity >= 60 && humidity < 80) {
+      this.humidityStatus = 'Normal';
+      this.humidityStatusIcon = 'yes';
+    }
+  }
+
+  setVisibilityStatus(visibility: number) {
+    if(visibility >= 0 && visibility < 4)
+    {
+      this.visibilityStatus = 'Bad';
+      this.visibilityStatusIcon = 'no';
+    }else if(visibility >= 4 && visibility < 10) {
+      this.visibilityStatus = 'Average';
+      this.visibilityStatusIcon = 'medium';
+    }
+    else if(visibility >= 10) {
+      this.visibilityStatus = 'Good';
+      this.visibilityStatusIcon = 'yes';
+    }
+  }
+
+  setAirStatus(airId: number) {
+    if(airId === 1) {
+      this.airStatus = 'Good';
+      this.airStatusIcon = 'yes';
+    }else if(airId === 2) {
+      this.airStatus = 'Moderate';
+      this.airStatusIcon = 'medium';
+    }else if(airId >= 3) {
+      this.airStatus = 'Unhealty';
+      this.airStatusIcon = 'no';
+    }else {
+      this.airStatus = 'No data';
+    }
+  }
 }
