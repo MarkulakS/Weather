@@ -14,43 +14,48 @@ import { GooglePlacesService } from 'src/app/service/google-places.service';
 
 export class MainPageComponent implements OnInit {
 
-  cityInfo: {
-    inputText: string;
-    citiesList: any[];
-    cityName: string;
-    cityId: number;
-    photoLink: string;
-    latitudeGPS: number;
-    LongitudeGPS: number;
+  // cityInfo: {
+  //   inputText: string;
+  //   citiesList: any[];
+  //   cityName: string;
+  //   photoLink: string;
+  //   latitudeGPS: number;
+  //   LongitudeGPS: number;
 
-  }[] = []
+  // }[] = []
 
   inputText = '';
   citiesList: any[]= [];
   cityName = '' || 'London';
-  cityFullName = 'England, United Kingdom';
-  cityId = '' || '2643743';
-  photoLink = '';
+  cityFullName = 'United Kingdom';
   latituteGPS = 0;
   longitudeGPS = 0;
 
-  weatherInfo: {
-    currentTemp: number;
-    feelsLike: number;
-    localDay: string;
-    localTime: number;
-    description: string;
-    rain: number;
-    uv: number;
-    windSpeed: number;
-    sunrise: string;
-    sunset: string;
-    humidity: number;
-    visibility: number;
-    minTemp: number;
-    air: number;
-    airIndex: number;
-  }[] = [];
+  // weatherInfo: {
+  //   currentTemp: number;
+  //   feelsLike: number;
+  //   localDay: string;
+  //   localTime: number;
+  //   description: string;
+  //   rain: number;
+  //   uv: number;
+  //   windSpeed: number;
+  //   sunrise: string;
+  //   sunset: string;
+  //   humidity: number;
+  //   humidityStatus: string;
+  //   humidityStatusIcon: string;
+  //   visibility: number;
+  //   visibilityStatus: string;
+  //   visibilityStatusIcon: string;
+  //   minTemp: number;
+  //   air: number;
+  //   airIndex: number;
+  //   airStatus: string;
+  //   airStatusIcon: string;
+  //   weatherCurrentCode: number;
+  //   weatherCurrentIcon: string;
+  // }[] = [];
 
   currentTemp = 0;
   feelsLike = 0;
@@ -76,7 +81,6 @@ export class MainPageComponent implements OnInit {
   airStatusIcon = '' || 'yes';
   weatherCurrentCode = 0;
   weatherCurrentIcon = 'sun';
-  forecastCode = 0;
 
   weekInfo: {
     day: string;
@@ -91,7 +95,6 @@ export class MainPageComponent implements OnInit {
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
     // this.getPhoto(this.cityName);
-    // this.getCityPhoto(this.cityId);
   }
 
   // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
@@ -113,6 +116,7 @@ export class MainPageComponent implements OnInit {
         this.currentTemp = Math.floor(res.current.temp_c);
         this.feelsLike = Math.floor(res.current.feelslike_c);
         this.localTime = this.changeFormatDate(res.location.localtime_epoch);
+        this.cityFullName = res.location.country;
         this.description = res.current.condition.text;
         this.rain = res.current.precip_mm;
         this.uv = res.current.uv;
@@ -151,7 +155,7 @@ export class MainPageComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Error when downloading data:', error);
+        console.error('Error when downloading weather data:', error);
       }
     )
   }
@@ -201,24 +205,24 @@ export class MainPageComponent implements OnInit {
   }
 
   
-  getPhoto(city: string) {
-    this.photoService.getReferencesPhotoByName(city).subscribe(
-      (res: any) => {
-        console.log("PhotoService: "+res.results[0]);
-        // console.log("PhotoService: "+res.results[0].photos[0].photo_reference);
+  // getPhoto(city: string) {
+  //   this.photoService.getReferencesPhotoByName(city).subscribe(
+  //     (res: any) => {
+  //       console.log("PhotoService: "+res.results[0]);
+  //       // console.log("PhotoService: "+res.results[0].photos[0].photo_reference);
 
-        this.photoService.getCityPhoto(res.results[0].photos[0].photo_reference).subscribe(
-          (photoUrl: any) => {
-            console.log(photoUrl); 
-          },
-          (error) => {console.log('Error when dowloading photo from Places API. '+error);}
-        )
-      },
-      (error) => {
-        console.log('Error when dowloading data from Places API. '+error);
-      }
-    )
-  }
+  //       this.photoService.getCityPhoto(res.results[0].photos[0].photo_reference).subscribe(
+  //         (photoUrl: any) => {
+  //           console.log(photoUrl); 
+  //         },
+  //         (error) => {console.log('Error when dowloading photo from Places API. '+error);}
+  //       )
+  //     },
+  //     (error) => {
+  //       console.log('Error when dowloading data from Places API. '+error);
+  //     }
+  //   )
+  // }
 
 
   // API_CURRENT_WEATHER = 'http://api.openweathermap.org/data/2.5/weather?q=';
@@ -226,23 +230,19 @@ export class MainPageComponent implements OnInit {
   // API_DAYS = '&cnt=1';
   // API_FORECAST_KEY = '&appid=66bcdad6e0d46da6a6d46283f4e3bad9';
   // API_UNITS = '&units=metric'
-  API_CITY_ID = 'https://api.teleport.org/api/cities/geonameid:';
 
   onInput(event: any): void {
     const inputValue = event.target.value.trim();
 
     if (inputValue.length >= 2) {
-      this.getNinjaApi(inputValue).forEach(el => {
-        // console.log(el);
-        // console.log(this.citiesList);
-      });
+      this.getNinjaApi(inputValue).forEach(() => {});
     } else {
       this.citiesList = [];
     } 
   }
 
   getNinjaApi(query: string): Observable<any> {
-    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=10`;
+    let url = `https://api.api-ninjas.com/v1/city?name=${query}&limit=20`;
     const headers = new HttpHeaders({
       'X-Api-Key': this.NINJA_KEY
     })
@@ -289,7 +289,6 @@ export class MainPageComponent implements OnInit {
   // }
 
   chosenCity(city: string) {
-    this.cityFullName = city.split(",").slice(1).toString();
     this.cityName = city.split(",", 1).toString();
     this.getApiWeather(this.cityName);
     this.inputText = '';
@@ -345,9 +344,9 @@ export class MainPageComponent implements OnInit {
   }
 
   setHumidityStatus(humidity: number) {
-    if((humidity >= 0 && humidity < 40) || (humidity >= 90 && humidity < 100))
+    if(humidity >= 0 && humidity < 40)
     {
-      this.humidityStatus = 'Unhealty';
+      this.humidityStatus = 'Low ';
       this.humidityStatusIcon = 'no';
     }else if((humidity >= 40 && humidity < 60) || (humidity >= 80 && humidity < 90)) {
       this.humidityStatus = 'Average';
@@ -356,6 +355,9 @@ export class MainPageComponent implements OnInit {
     else if(humidity >= 60 && humidity < 80) {
       this.humidityStatus = 'Normal';
       this.humidityStatusIcon = 'yes';
+    }else if(humidity >= 90 && humidity <= 100) {
+      this.humidityStatus = 'High ';
+      this.humidityStatusIcon = 'no';
     }
   }
 
