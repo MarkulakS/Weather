@@ -1,10 +1,9 @@
-import { HttpClient, HttpHeaderResponse, HttpHeaders } from '@angular/common/http';
-import { Component, Injectable, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { GeocodingServiceService } from 'src/app/service/geocoding-service.service';
-import { GooglePlacesService } from 'src/app/service/google-places.service';
 
 @Component({
   selector: 'app-main-page',
@@ -63,7 +62,7 @@ export class MainPageComponent implements OnInit {
   localTime = 0 || '?';
   description = '' || '?';
   rain = 0 || '?';
-  uv = 0 || '?';
+  uv = 0;
   windSpeed = 0 || '?';
   windDirection = '' || '?';
   sunrise = '' || '?';
@@ -89,13 +88,39 @@ export class MainPageComponent implements OnInit {
     weatherCode: string;
   }[] = [];
 
-  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService, 
-    private photoService: GooglePlacesService) { }
+  constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
 
   ngOnInit(): void {
     this.getApiWeather(this.cityName);
+    this.progresBarChange(this.uv);
+
     // this.getPhoto(this.cityName);
   }
+
+  progresBarChange(uv: number) {
+    let min = -45;
+    let max = 16;
+    let color;
+    let y = min + (uv/max) *180;
+    if(uv <= 2) {
+      color = 'lime';
+    }else if(uv > 2 && uv <= 5) {
+      color = 'yellow';
+    }else if(uv > 5 && uv <= 7) {
+      color = 'orange';
+    }else if(uv > 7 && uv <= 10) {
+      color = 'red';
+    }else if(uv > 10) {
+      color = 'purple';
+    }
+    if(document.getElementById('progres')){
+      document.getElementById('progres')!.style.transform = `rotate(${y}deg)`
+      document.getElementById('progres')!.style.borderColor = `#ddd #ddd ${color} ${color}`;
+    }else {
+      console.log('Error with getElById progress');
+    }
+  }
+
 
   // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
   private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==jFLheXteHMle6enk';
@@ -120,6 +145,7 @@ export class MainPageComponent implements OnInit {
         this.description = res.current.condition.text;
         this.rain = res.current.precip_mm;
         this.uv = res.current.uv;
+        this.progresBarChange(this.uv);
         this.windSpeed = res.current.wind_kph;
         this.windDirection = res.current.wind_dir;
         this.humidity = res.current.humidity;

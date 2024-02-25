@@ -192,11 +192,43 @@
                        }
 
                     }
+                    .tile-progres {
+                        margin: auto;
+                        margin-top: 1rem;
+                        .progres {
+                            display: flex;
+                            height: 100%;
+                            margin: auto;
+                            p {
+                                width: 180px;
+                                height: 89px;
+                                margin: 0 auto;
+                                display: flex;
+                                justify-content: center;
+                                align-items: flex-end;
+                                position: relative;
+                                overflow: hidden;
+                                span {
+                                    position: absolute;
+                                    left: 0;
+                                    top: 0;
+                                    width: 180px;
+                                    height: 180px;
+                                    border: 50px solid;
+                                    border-color: #ddd #ddd lime lime;
+                                    border-radius: 50%;
+                                    transform: rotate(-45deg);
+                                    transition: .5s;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 .info .tab-pills .nav {
     .active {
