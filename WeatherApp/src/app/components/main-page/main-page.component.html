@@ -13,22 +13,22 @@
                 <li class="border-bottom my-2 ps-4" *ngFor="let city of citiesList"><a (click)="chosenCity(city.name)">{{city.name}}, {{city.country}}</a></li>
             </ul>
         </div>
-        <div class="day-weather d-flex-column mx-auto mt-5">
+        <div class="day-weather d-flex-column mx-auto mt-5" *ngFor="let daily of weatherInfo">
             <div class="img-weather d-flex m-auto justify-content-center">
-                <img src="/assets/icons-colour/{{weatherCurrentIcon}}.png" width="150px" alt="img-weather">
+                <img src="/assets/icons-colour/{{daily.weatherCurrentIcon}}.png" width="150px" alt="img-weather">
             </div>
             <div class="day-info d-flex-column mx-5 mt-3 border-bottom">
-                <p class="temp mb-0">{{currentTemp}}<sup>°C</sup> <span class="fs-4">{{feelsLike}}<sup>°C</sup></span></p>
-                <p class="day-name fs-5 mt-0">{{localDay}}, <span>{{localTime}}</span></p>
+                <p class="temp mb-0">{{daily.currentTemp}}<sup>°C</sup> <span class="fs-4">{{daily.feelsLike}}<sup>°C</sup></span></p>
+                <p class="day-name fs-5 mt-0">{{daily.localDay}}, <span>{{daily.localTime}}</span></p>
             </div>
             <div class="day-details mx-5 mb-5">
                 <div class="d-flex align-items-center m-auto mt-3">
                     <img src="/assets/icons-colour/clouds.png" width="45px" alt="img-clouds">
-                    <p class="my-auto ms-4">{{description.toUpperCase()}}</p>
+                    <p class="my-auto ms-4">{{daily.description.toUpperCase()}}</p>
                 </div>
                 <div class="d-flex align-items-center m-auto mt-3">
                     <img src="/assets/icons-colour/dew-point.png" height="40px" alt="img-water">
-                    <p class="my-auto ms-4">Precip - {{rain}} mm</p>
+                    <p class="my-auto ms-4">Precip - {{daily.rain}} mm</p>
                 </div>
             </div>
         </div>
@@ -46,19 +46,19 @@
                 <!-- Today Panel -->
                 <div class="tab-pane fade show active" id="pills-today" role="tabpanel" aria-labelledby="pills-today-tab">
                     <!-- Title photo name -->
-                    <div class="city-photo shadow">
+                    <div class="city-photo shadow" *ngFor="let city of cityInfo">
                         
                         <!-- <img src="{{photoLink}}" alt="city-image"> -->
                         <div class="city-image"></div>
                         <!-- <img src="assets/photos/london_1280.jpg" alt="city-image"> -->
                         <div class="city-name">
-                            <h1>{{cityName}}</h1>
-                            <p class="text-center">{{cityFullName}}</p>
+                            <h1>{{city.cityName}}</h1>
+                            <p class="text-center">{{city.cityFullName}}</p>
                         </div>
                     </div>
                     <!-- Highlights panel -->
-                    <div class="week-highlights d-flex-column mt-3">
-                        <p class="title-highlights fs-5 mb-0">Today's Highlights</p>
+                    <div class="week-highlights d-flex-column mt-3" *ngFor="let daily of weatherInfo">
+                        <p class="title-highlights fs-5 mb-0">Current Highlights</p>
                         <div class="tiles-container ">
                             <div class="row" id="row">
                                 <div class="col" id="column">
@@ -66,8 +66,8 @@
                                     <div class="tile-details mb-0 ms-auto tile-progres">
                                         <div class="progres">
                                             <p>
-                                                <span id="progres"></span>
-                                                <small class="fs-5">{{uv}}</small>
+                                                <span id="progres-1"></span>
+                                                <small class="fs-5">{{daily.uv}}</small>
                                             </p>
                                         </div>
                                     </div>
@@ -75,10 +75,17 @@
                                 <div class="col" id="column">
                                     <p class="title">Wind Status</p>
                                     <div class="tile-details">
-                                        <p class="fs-1">{{windSpeed}}<sub class="fs-5"> km/h</sub></p>
-                                        <div class="subtext d-flex-row">
-                                            <img src="/assets/icons-colour/windsock.png"   alt="windsock-img" width="25px" height="25px">
-                                            <span class="ms-2"> {{windDirection}}</span>
+                                        <div class="row">
+                                            <div class="col-7 pe-0">
+                                                <p class="fs-1">{{daily.windSpeed}}<sub class="fs-5"> km/h</sub></p>
+                                                <div class="subtext d-flex-row">
+                                                    <img src="/assets/icons-colour/windsock.png" alt="windsock-img" width="25px" height="25px">
+                                                    <span class="ms-2"> {{daily.windDirection}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-5 ps-0 mt-2">
+                                                <img src="/assets/icons-colour/wind.png" width="75px" height="75px" alt="moisture-img">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -90,7 +97,7 @@
                                                 <img src="/assets/icons-colour/sunrise.png" alt="sunrise-img" width="50px" height="50px">
                                             </div>
                                             <div class="col-7 m-auto ms-0">
-                                                <span>{{sunrise}}</span>
+                                                <span>{{daily.sunrise}}</span>
                                             </div>
                                         </div>
                                         <div class="row">
@@ -98,7 +105,7 @@
                                                 <img src="/assets/icons-colour/sunset.png" alt="sunset-img" width="50px" height="50px">
                                             </div>
                                             <div class="col-7 m-auto ms-0">
-                                                <span>{{sunset}}</span>
+                                                <span>{{daily.sunset}}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -110,10 +117,10 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe-0">
-                                                <p class="fs-1">{{humidity}}<sup class="fs-5">%</sup></p>
+                                                <p class="fs-1">{{daily.humidity}}<sup class="fs-5">%</sup></p>
                                                 <div class="subtext">
-                                                    <span>{{humidityStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{humidityStatusIcon}}.png" width="25px" height="25px" alt="yes-img">
+                                                    <span>{{daily.humidityStatus}} </span>
+                                                    <img src="/assets/icons-colour/{{daily.humidityStatusIcon}}.png" width="25px" height="25px" alt="yes-img">
                                                 </div>
                                             </div>
                                             <div class="col-5 ps-0 mt-2">
@@ -127,10 +134,10 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe-0">
-                                                <p class="fs-1">{{visibility}}<sub class="fs-5"> km</sub></p>
+                                                <p class="fs-1">{{daily.visibility}}<sub class="fs-5"> km</sub></p>
                                                 <div class="subtext">
-                                                    <span>{{visibilityStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{visibilityStatusIcon}}.png" width="25px" height="25px" alt="medium-img">
+                                                    <span>{{daily.visibilityStatus}} </span>
+                                                    <img src="/assets/icons-colour/{{daily.visibilityStatusIcon}}.png" width="25px" height="25px" alt="medium-img">
                                                 </div>
                                             </div>
                                             <div class="col-5 ps-0 mt-2">
@@ -144,10 +151,10 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe=0">
-                                                <p class="fs-1">{{air}}</p>
+                                                <p class="fs-1">{{daily.air}}</p>
                                                 <div class="subtext">
-                                                    <span>{{airStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{airStatusIcon}}.png" width="25px" height="25px" alt="no-img">
+                                                    <span>{{daily.airStatus}} </span>
+                                                    <img src="/assets/icons-colour/{{daily.airStatusIcon}}.png" width="25px" height="25px" alt="no-img">
                                                 </div>
                                             </div>
                                             <div class="col-5 ps-0 mt-1">
@@ -166,30 +173,43 @@
                 <div class="tab-pane fade" id="pills-week" role="tabpanel" aria-labelledby="pills-week-tab">
                     <!-- Daily panel -->
                     <div class="week-daily-tiles d-flex justify-content-center">
-                        <div class="tile-sm d-flex-column text-center my-auto shadow" *ngFor="let tile of weekInfo">
-                            <p class="day-name">{{tile.day}}</p>
-                            <img class="m-auto" src="/assets/icons-colour/{{tile.weatherCode}}.png" alt="weather-img">
-                            <p class="temp">{{tile.dayC}}<sup>°</sup> <span> {{tile.nightC}}<sup>°</sup></span></p>
+                        <div class="tile-input" *ngFor="let tile of weekInfo">
+                            <input type="radio" name="choiceDay" value="{{tile.id}}" checked (change)="changeWeather($event.target)" *ngIf="tile.id === 0">
+                            <input type="radio" name="choiceDay" value="{{tile.id}}" (change)="changeWeather($event.target)" *ngIf="tile.id !== 0">
+                            <div class="tile-sm d-flex-column text-center my-auto">
+                                <p class="day-name">{{tile.dayName}}</p>
+                                <img class="m-auto" src="/assets/icons-colour/{{tile.weatherCode}}.png" alt="weather-img">
+                                <p class="temp">{{tile.dayC}}<sup>°</sup> <span> {{tile.nightC}}<sup>°</sup></span></p>
+                            </div>
                         </div>
+                        
                     </div>
                     <!-- Highlights panel -->
-                    <div class="week-highlights d-flex-column mt-3">
-                        <p class="title-highlights fs-5 mb-0">Today's Highlights</p>
+                    <div class="week-highlights d-flex-column mt-3" *ngFor="let day of weekHighlights">
+                        <p class="title-highlights fs-5 mb-0">{{day.dayNameLong}} AVG Highlights</p>
                         <div class="tiles-container ">
                             <div class="row" id="row">
                                 <div class="col" id="column">
                                     <p class="title">UV Index</p>
-                                    <div class="tile-details mb-0 ms-auto">
-                                        <p class="fs-1 text-center">{{uv}}</p>
+                                    <div class="tile-details mb-0 ms-auto tile-progres">
+                                        <div class="progres">
+                                            <p>
+                                                <span id="progres-2"></span>
+                                                <small class="fs-5">{{day.uv}}</small>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col" id="column">
                                     <p class="title">Wind Status</p>
                                     <div class="tile-details">
-                                        <p class="fs-1">{{windSpeed}}<sub class="fs-5"> km/h</sub></p>
-                                        <div class="subtext d-flex-row">
-                                            <img src="/assets/icons-colour/windsock.png"   alt="windsock-img" width="25px" height="25px">
-                                            <span class="ms-2"> {{windDirection}}</span>
+                                        <div class="row">
+                                            <div class="col-7 pe-0">
+                                                <p class="fs-1">{{day.windSpeed}}<sub class="fs-5"> km/h</sub></p>
+                                            </div>
+                                            <div class="col-5 ps-0 mb-2">
+                                                <img src="/assets/icons-colour/wind.png" width="75px" height="75px" alt="moisture-img">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -201,7 +221,7 @@
                                                 <img src="/assets/icons-colour/sunrise.png" alt="sunrise-img" width="50px" height="50px">
                                             </div>
                                             <div class="col-7 m-auto ms-0">
-                                                <span>{{sunrise}}</span>
+                                                <span>{{day.sunrise}}</span>
                                             </div>
                                         </div>
                                         <div class="row">
@@ -209,7 +229,7 @@
                                                 <img src="/assets/icons-colour/sunset.png" alt="sunset-img" width="50px" height="50px">
                                             </div>
                                             <div class="col-7 m-auto ms-0">
-                                                <span>{{sunset}}</span>
+                                                <span>{{day.sunset}}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -221,10 +241,10 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe-0">
-                                                <p class="fs-1">{{humidity}}<sup class="fs-5">%</sup></p>
+                                                <p class="fs-1">{{day.humidity}}<sup class="fs-5">%</sup></p>
                                                 <div class="subtext">
-                                                    <span>{{humidityStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{humidityStatusIcon}}.png" width="25px" height="25px" alt="yes-img">
+                                                    <span>{{day.humidityStatus}} </span>
+                                                    <img src="/assets/icons-colour/{{day.humidityStatusIcon}}.png" width="25px" height="25px" alt="yes-img">
                                                 </div>
                                             </div>
                                             <div class="col-5 ps-0 mt-2">
@@ -238,10 +258,10 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe-0">
-                                                <p class="fs-1">{{visibility}}<sub class="fs-5"> km</sub></p>
+                                                <p class="fs-1">{{day.visibility}}<sub class="fs-5"> km</sub></p>
                                                 <div class="subtext">
-                                                    <span>{{visibilityStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{visibilityStatusIcon}}.png" width="25px" height="25px" alt="medium-img">
+                                                    <span>{{day.visibilityStatus}} </span>
+                                                    <img src="/assets/icons-colour/{{day.visibilityStatusIcon}}.png" width="25px" height="25px" alt="medium-img">
                                                 </div>
                                             </div>
                                             <div class="col-5 ps-0 mt-2">
@@ -255,11 +275,7 @@
                                     <div class="tile-details-2">
                                         <div class="row">
                                             <div class="col-7 pe=0">
-                                                <p class="fs-1">{{air}}</p>
-                                                <div class="subtext">
-                                                    <span>{{airStatus}} </span>
-                                                    <img src="/assets/icons-colour/{{airStatusIcon}}.png" width="25px" height="25px" alt="no-img">
-                                                </div>
+                                                <p class="fs-3">No avg data</p>
                                             </div>
                                             <div class="col-5 ps-0 mt-1">
                                                 <img class="image" src="/assets/icons-colour/quality.png" width="75px" height="75px" alt="quality-img">

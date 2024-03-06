@@ -121,12 +121,23 @@
     .week-daily-tiles {
         width: 100%;
         grid-gap: .7rem;
+        .tile-input {
+            position: relative;
+            input[type=radio]{
+                position: absolute;
+                width: 115px;
+                height: 150px;
+                opacity: 0;
+                cursor: pointer;
+                border-radius: 0;
+            }
+        }
         .tile-sm {
+            display: inline-block;
             width: 115px;
             height: 150px;
             background-color: #fff;
             border-radius: 25px 25px;
-            cursor: pointer;
             img {
                 width: 50px;
             }
@@ -136,13 +147,14 @@
             .temp span {
                 opacity: .3;
             }
+            transition: all .2s ease-in-out;
             box-shadow: 0 .125rem .25rem rgba(#000, .075);
-            transition: all .3s ease-in-out;
         }
-        .tile:hover {
+        .tile-input:hover .tile-sm {
             transition: all .2s ease-in-out;
             box-shadow: 0 .5rem 1rem rgba(#000, .15);
         }
+
     }
     .week-highlights {
         width: 100%;
@@ -190,7 +202,6 @@
                                 margin-left: -20%;
                             }
                        }
-
                     }
                     .tile-progres {
                         margin: auto;
