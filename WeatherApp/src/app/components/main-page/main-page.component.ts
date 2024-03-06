@@ -13,114 +13,162 @@ import { GeocodingServiceService } from 'src/app/service/geocoding-service.servi
 
 export class MainPageComponent implements OnInit {
 
-  // cityInfo: {
-  //   inputText: string;
-  //   citiesList: any[];
-  //   cityName: string;
-  //   photoLink: string;
-  //   latitudeGPS: number;
-  //   LongitudeGPS: number;
+  firstLoad = false;
 
-  // }[] = []
+  cityInfo: {
+    cityName: string;
+    cityFullName: string;
+    latitudeGPS: number;
+    longitudeGPS: number;
+  }[] = []
 
   inputText = '';
-  citiesList: any[]= [];
-  cityName = '' || 'London';
-  cityFullName = 'United Kingdom';
-  latituteGPS = 0;
-  longitudeGPS = 0;
+  citiesList: any[] = [];
 
-  // weatherInfo: {
-  //   currentTemp: number;
-  //   feelsLike: number;
-  //   localDay: string;
-  //   localTime: number;
-  //   description: string;
-  //   rain: number;
-  //   uv: number;
-  //   windSpeed: number;
-  //   sunrise: string;
-  //   sunset: string;
-  //   humidity: number;
-  //   humidityStatus: string;
-  //   humidityStatusIcon: string;
-  //   visibility: number;
-  //   visibilityStatus: string;
-  //   visibilityStatusIcon: string;
-  //   minTemp: number;
-  //   air: number;
-  //   airIndex: number;
-  //   airStatus: string;
-  //   airStatusIcon: string;
-  //   weatherCurrentCode: number;
-  //   weatherCurrentIcon: string;
-  // }[] = [];
-
-  currentTemp = 0;
-  feelsLike = 0;
-  localDay = '' || '?';
-  localTime = 0 || '?';
-  description = '' || '?';
-  rain = 0 || '?';
-  uv = 0;
-  windSpeed = 0 || '?';
-  windDirection = '' || '?';
-  sunrise = '' || '?';
-  sunset = '' || '?';
-  humidity = 0 ;
-  humidityStatus = '' || '?';
-  humidityStatusIcon = '' || 'yes';
-  visibility = 0;
-  visibilityStatus = '' || '?';
-  visibilityStatusIcon = '' || 'yes';
-  minTemp = 0 || '?';
-  air = 0 || '?';
-  airIndex = 0;
-  airStatus = '' || '?';
-  airStatusIcon = '' || 'yes';
-  weatherCurrentCode = 0;
-  weatherCurrentIcon = 'sun';
+  weatherInfo: {
+    currentTemp: number;
+    feelsLike: number;
+    localDay: string;
+    localTime: string;
+    cityFullName: string;
+    description: string;
+    rain: number;
+    uv: number;
+    windSpeed: number;
+    windDirection: string;
+    sunrise: string;
+    sunset: string;
+    humidity: number;
+    humidityStatus: string;
+    humidityStatusIcon: string;
+    visibility: number;
+    visibilityStatus: string;
+    visibilityStatusIcon: string;
+    air: number;
+    airIndex: number;
+    airStatus: string;
+    airStatusIcon: string;
+    weatherCurrentCode: number;
+    weatherCurrentIcon: string;
+  }[] = [];
 
   weekInfo: {
-    day: string;
+    date: string;
+    id: number;
+    dayName: string;
+    dayNameLong: string;
     dayC: number;
     nightC: number;
     weatherCode: string;
+    uv: number;
+    humidity: number;
+    humidityStatus: string;
+    humidityStatusIcon: string;
+    windSpeed: number;
+    sunrise: string;
+    sunset: string;
+    visibility: number;
+    visibilityStatus: string;
+    visibilityStatusIcon: string;
   }[] = [];
+
+  weekHighlights: {
+    date: string;
+    id: number;
+    dayName: string;
+    dayNameLong: string;
+    dayC: number;
+    nightC: number;
+    weatherCode: string;
+    uv: number;
+    humidity: number;
+    humidityStatus: string;
+    humidityStatusIcon: string;
+    windSpeed: number;
+    sunrise: string;
+    sunset: string;
+    visibility: number;
+    visibilityStatus: string;
+    visibilityStatusIcon: string;
+  }[] = [];
+
 
   constructor(private http: HttpClient, private geocodingService: GeocodingServiceService) { }
 
   ngOnInit(): void {
-    this.getApiWeather(this.cityName);
-    this.progresBarChange(this.uv);
+    if(!localStorage.getItem('city')) {
+      this.cityInfo.push({
+        cityName: 'London',
+        cityFullName: 'United Kingdom',
+        latitudeGPS: 0,
+        longitudeGPS: 0
+      })
+      localStorage.setItem('city', JSON.stringify(this.cityInfo[0]));
+      this.firstLoad = true;
+    }else{
+      let cityStorage = JSON.parse(localStorage.getItem('city') || '[]')
+      this.cityInfo.push({
+        cityName: cityStorage.cityName,
+        cityFullName: cityStorage.cityFullName,
+        latitudeGPS: cityStorage.latitudeGPS,
+        longitudeGPS: cityStorage.longitudeGPS
+      });
+      this.firstLoad = false;
+    }
 
+    if(!localStorage.getItem('weekInfo')) {
+      this.getApiWeather(this.cityInfo[0].cityName);
+    }else {
+      this.getStorageData();
+    }
     // this.getPhoto(this.cityName);
   }
 
-  progresBarChange(uv: number) {
-    let min = -45;
-    let max = 16;
-    let color;
-    let y = min + (uv/max) *180;
-    if(uv <= 2) {
-      color = 'lime';
-    }else if(uv > 2 && uv <= 5) {
-      color = 'yellow';
-    }else if(uv > 5 && uv <= 7) {
-      color = 'orange';
-    }else if(uv > 7 && uv <= 10) {
-      color = 'red';
-    }else if(uv > 10) {
-      color = 'purple';
-    }
-    if(document.getElementById('progres')){
-      document.getElementById('progres')!.style.transform = `rotate(${y}deg)`
-      document.getElementById('progres')!.style.borderColor = `#ddd #ddd ${color} ${color}`;
-    }else {
-      console.log('Error with getElById progress');
-    }
+  changeWeather(checked: any) {
+    let val = checked.value;
+    let week = JSON.parse(localStorage.getItem('weekInfo') || '[]');
+
+    console.log("first load: "+this.firstLoad);
+
+    if(this.firstLoad) val = '0';
+
+      if(val === '0') {
+        this.weekHighlights[0] = week[0];
+      }else if(val === '1') {
+        this.weekHighlights[0] = week[1];
+      }else if(val === '2') {
+        this.weekHighlights[0] = week[2];
+      }else {
+        console.log('Error with checkbox');
+      }
+
+      setTimeout(() => {
+        this.progresBar(this.weekHighlights[0].uv);
+      }, 300);
+      this.firstLoad = false;
   }
 
+  getStorageData() {
+    let tday = JSON.parse(localStorage.getItem('tdayWeather') || '[]');
+    let week = JSON.parse(localStorage.getItem('weekInfo') || '[]');
+
+    this.weatherInfo[0] = tday;
+    
+    setTimeout(() => {
+      this.progresBarChange(this.weatherInfo[0].uv);
+    }, 300);
+
+    for(let i = 0; i < week.length; i++) {
+      if(i === 0) {
+        this.weekHighlights[0] = week[0];
+        setTimeout(() => {
+          this.progresBar(this.weekHighlights[0].uv);
+        }, 300);
+      }
+      this.weekInfo[i] = week[i];
+    }
+
+  }
 
   // API_NINJA_CITIES = 'https://api.api-ninjas.com/v1/city?name=';
   private NINJA_KEY = 'AIIJBHZf5zCVXIu0l0Qmdw==jFLheXteHMle6enk';
@@ -132,52 +180,85 @@ export class MainPageComponent implements OnInit {
 
   getApiWeather(city: string) {
     this.weekInfo = [];
+    this.weatherInfo = [];
+    this.resetStorage();
+    this.firstLoad = true;
 
     const URL = this.API_WEATHER + this.API_WEATHER_KEY + '&q=' + city + this.API_AIR + this.API_DAYS;
 
     this.http.get(URL).subscribe(
       (res: any) => {
-      console.log(res);
-        this.currentTemp = Math.floor(res.current.temp_c);
-        this.feelsLike = Math.floor(res.current.feelslike_c);
-        this.localTime = this.changeFormatDate(res.location.localtime_epoch);
-        this.cityFullName = res.location.country;
-        this.description = res.current.condition.text;
-        this.rain = res.current.precip_mm;
-        this.uv = res.current.uv;
-        this.progresBarChange(this.uv);
-        this.windSpeed = res.current.wind_kph;
-        this.windDirection = res.current.wind_dir;
-        this.humidity = res.current.humidity;
-        this.setHumidityStatus(this.humidity);
-        this.visibility = res.current.vis_km;
-        this.setVisibilityStatus(this.visibility);
-        this.air = res.current.air_quality.co.toFixed(0);
-        this.airIndex = res.current.air_quality["us-epa-index"];
-        this.setAirStatus(this.airIndex);
-        this.sunrise = res.forecast.forecastday[0].astro.sunrise;
-        this.sunset = res.forecast.forecastday[0].astro.sunset;
-        this.weatherCurrentCode = res.current.condition.code;
-        this.weatherCurrentIcon = this.chooseWeatherIcon(this.weatherCurrentCode);
+        
+        this.weatherInfo.push({
+          currentTemp: Math.floor(res.current.temp_c),
+          feelsLike: Math.floor(res.current.feelslike_c),
+          localTime: this.changeFormatDate(res.location.localtime_epoch, 'time'),
+          localDay: this.changeFormatDate(res.location.localtime_epoch, 'day'),
+          cityFullName: res.location.country,
+          description: res.current.condition.text,
+          rain: res.current.precip_mm,
+          uv: res.current.uv,
+          windSpeed: res.current.wind_kph,
+          windDirection: res.current.wind_dir,
+          sunrise: res.forecast.forecastday[0].astro.sunrise,
+          sunset: res.forecast.forecastday[0].astro.sunset,
+          humidity: res.current.humidity,
+          humidityStatus: this.setHumidityStatus(res.current.humidity)[0].status,
+          humidityStatusIcon: this.setHumidityStatus(res.current.humidity)[0].icon,
+          visibility: res.current.vis_km,
+          visibilityStatus: this.setVisibilityStatus(res.current.vis_km)[0].status,
+          visibilityStatusIcon: this.setVisibilityStatus(res.current.vis_km)[0].icon,
+          air: res.current.air_quality.co.toFixed(0),
+          airIndex: res.current.air_quality["us-epa-index"],
+          airStatus: this.setAirStatus(res.current.air_quality["us-epa-index"])[0].status,
+          airStatusIcon: this.setAirStatus(res.current.air_quality["us-epa-index"])[0].icon,
+          weatherCurrentCode: res.current.condition.code,
+          weatherCurrentIcon: this.chooseWeatherIcon(res.current.condition.code)
+        })
+        if(!localStorage.getItem('tdayWeather')) {
+          localStorage.setItem('tdayWeather', JSON.stringify(this.weatherInfo[0]));
+        }
+        setTimeout(() => {
+          this.progresBarChange(this.weatherInfo[0].uv);
+        }, 300);
 
-        for(let i=0; i<res.forecast.forecastday.length; i++) {
-          let name = '';
+        for(let i = 0; i < res.forecast.forecastday.length; i++) {
+          let nameShort, nameLong;
           if(i === 0) { 
-            name = 'Tday';
+            nameShort = 'Tday';
+            nameLong = 'Today';
           }else {
-            name = this.changeDayName(res.forecast.forecastday[i].date_epoch);
+            nameShort = this.changeDayName(res.forecast.forecastday[i].date_epoch, 'short');
+            nameLong = this.changeDayName(res.forecast.forecastday[i].date_epoch, 'long');
           }
-          let code = res.forecast.forecastday[i].day.condition.code;
-          let weatherCode = this.chooseWeatherIcon(code);
-          let dayC = Math.floor(res.forecast.forecastday[i].day.maxtemp_c);
-          let nightC = Math.floor(res.forecast.forecastday[i].day.mintemp_c);
 
           this.weekInfo.push({
-            day: name,
-            dayC: dayC,
-            nightC: nightC,
-            weatherCode: weatherCode          
+            date: res.forecast.forecastday[i].date,
+            id: i,
+            dayName: nameShort,
+            dayNameLong: nameLong,
+            dayC: Math.floor(res.forecast.forecastday[i].day.maxtemp_c),
+            nightC: Math.floor(res.forecast.forecastday[i].day.mintemp_c),
+            weatherCode: this.chooseWeatherIcon(res.forecast.forecastday[i].day.condition.code),
+            uv: res.forecast.forecastday[i].day.uv,
+            humidity: res.forecast.forecastday[i].day.avghumidity,
+            humidityStatus: this.setHumidityStatus(res.forecast.forecastday[i].day.avghumidity)[0].status,
+            humidityStatusIcon: this.setHumidityStatus(res.forecast.forecastday[i].day.avghumidity)[0].icon,
+            windSpeed: res.forecast.forecastday[i].day.maxwind_kph,
+            sunrise: res.forecast.forecastday[i].astro.sunrise,
+            sunset: res.forecast.forecastday[i].astro.sunset,
+            visibility: res.forecast.forecastday[i].day.avgvis_km,
+            visibilityStatus: this.setVisibilityStatus(res.forecast.forecastday[i].day.avgvis_km)[0].status,
+            visibilityStatusIcon: this.setVisibilityStatus(res.forecast.forecastday[i].day.avgvis_km)[0].icon
           })
+
+          if(!localStorage.getItem('day'+i)) {
+            localStorage.setItem('day'+i, JSON.stringify(this.weekInfo[i]));
+          }
+        }
+        if(!localStorage.getItem('weekInfo')) {
+          localStorage.setItem('weekInfo', JSON.stringify(this.weekInfo));
+          this.changeWeather(true);
         }
       },
       (error) => {
@@ -187,18 +268,30 @@ export class MainPageComponent implements OnInit {
   }
 
   getLocation() {
+    localStorage.removeItem('city');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => { 
-          this.latituteGPS = position.coords.latitude; 
-          this.longitudeGPS = position.coords.longitude;
-          this.geocodingService.getCityByCoordinates(this.latituteGPS, this.longitudeGPS).subscribe(
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude; 
+          this.geocodingService.getCityByCoordinates(latitude, longitude).subscribe(
             (data: any) => {
+              this.cityInfo = [];
               const fullAddress = data.results[0].formatted;
-              this.cityFullName = fullAddress.split(',', 3)[2];
               const parts = fullAddress.split(',', 3)[1].split(' ', 8);
-              this.cityName = parts.slice(2).toString();
-              this.getApiWeather(this.cityName);
+              this.cityInfo.push({
+                cityName: parts.slice(2).toString(),
+                cityFullName: fullAddress.split(',', 3)[2],
+                latitudeGPS: latitude,
+                longitudeGPS: longitude,
+              })
+              localStorage.setItem('city', JSON.stringify(this.cityInfo[0]));
+              setTimeout(() => {
+                this.getApiWeather(this.cityInfo[0].cityName);
+              },300);
+              setTimeout(() => {
+                this.changeWeather(true);
+              },500);
             },
             (error) => {
               console.log("Error with download data from GEO_API: "+error);
@@ -314,35 +407,65 @@ export class MainPageComponent implements OnInit {
   //   )
   // }
 
+  resetStorage() {
+    localStorage.removeItem('weekInfo');
+    localStorage.removeItem('tdayWeather');
+    localStorage.removeItem('day0');
+    localStorage.removeItem('day1');
+    localStorage.removeItem('day2');
+  }
+
   chosenCity(city: string) {
-    this.cityName = city.split(",", 1).toString();
-    this.getApiWeather(this.cityName);
+    localStorage.removeItem('city');
+    this.cityInfo = [];
+    this.cityInfo.push({
+      cityName: city.split(",", 1).toString(),
+      cityFullName: '',
+      latitudeGPS: 0,
+      longitudeGPS: 0
+    })
+    setTimeout(() => {
+      this.getApiWeather(this.cityInfo[0].cityName);
+    },300 );
+    setTimeout(() => {
+      this.changeWeather(true);
+    },500 );
     this.inputText = '';
     this.citiesList = [];
   }
 
-  changeFormatDate(date: number) {
+  changeFormatDate(date: number, format: string) {
     const utcDate = new Date(date * 1000);
-    const formattedTime = new Intl.DateTimeFormat('en-US', {
-      hour12: true, 
-      hour: 'numeric',
-      minute: 'numeric'
-    }).format(utcDate);
+    let formatedDate;
 
-    const formattedDay = new Intl.DateTimeFormat('en-US', {
-      weekday: 'long'
-    }).format(utcDate);
-    this.localDay = formattedDay;
+    if(format === 'time') {
+      formatedDate = new Intl.DateTimeFormat('en-US', {
+        hour12: true, 
+        hour: 'numeric',
+        minute: 'numeric'
+      }).format(utcDate);
+    }else {
+      formatedDate = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long'
+      }).format(utcDate);
+    }
 
-    return formattedTime;
+    return formatedDate;
   }
 
-  changeDayName(date: number) {
+  changeDayName(date: number, length: string) {
     const utcDate = new Date(date * 1000);
+    let formattedDay;
 
-    const formattedDay = new Intl.DateTimeFormat('en-US', {
-      weekday: 'short'
-    }).format(utcDate);
+    if(length === 'short') {
+      formattedDay = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short'
+      }).format(utcDate);
+    }else {
+       formattedDay = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long'
+      }).format(utcDate);
+    }
 
     return formattedDay;
   }
@@ -363,57 +486,105 @@ export class MainPageComponent implements OnInit {
     if(code === 1279) {weather = 'stormy-sun-snow';};
     if(code === 1114 || code === 1117 || code === 1213 || code === 1219  || code === 1225  || code === 1237) {weather = 'snow';};
     if(code === 1150 || code === 1153 || code === 1180 || code === 1183 || code === 1186 || code === 1189) {weather = 'rain';};
-    if(code === 1195) {weather = 'heavy-reain';};
+    if(code === 1195) {weather = 'heavy-rain';};
     if(code === 1204 || code === 1207) {weather = 'sleet';};
     
     return weather;
   }
 
   setHumidityStatus(humidity: number) {
-    if(humidity >= 0 && humidity < 40)
-    {
-      this.humidityStatus = 'Low ';
-      this.humidityStatusIcon = 'no';
+    let humidityInfo: {status: string, icon: string}[] = [];
+
+    if(humidity >= 0 && humidity < 40) {
+      humidityInfo.push({status: 'Low ', icon: 'no'});
     }else if((humidity >= 40 && humidity < 60) || (humidity >= 80 && humidity < 90)) {
-      this.humidityStatus = 'Average';
-      this.humidityStatusIcon = 'medium';
-    }
-    else if(humidity >= 60 && humidity < 80) {
-      this.humidityStatus = 'Normal';
-      this.humidityStatusIcon = 'yes';
+      humidityInfo.push({status: 'Average', icon: 'medium'});
+    }else if(humidity >= 60 && humidity < 80) {
+      humidityInfo.push({status: 'Normal', icon: 'yes'});
     }else if(humidity >= 90 && humidity <= 100) {
-      this.humidityStatus = 'High ';
-      this.humidityStatusIcon = 'no';
+      humidityInfo.push({status: 'High ', icon: 'no'});
     }
+
+    return humidityInfo;
   }
 
   setVisibilityStatus(visibility: number) {
+    let visibilityInfo: {status: string, icon: string}[] = [];
+
     if(visibility >= 0 && visibility < 4)
     {
-      this.visibilityStatus = 'Bad';
-      this.visibilityStatusIcon = 'no';
+      visibilityInfo.push({status: 'Bad', icon: 'no'});
     }else if(visibility >= 4 && visibility < 10) {
-      this.visibilityStatus = 'Average';
-      this.visibilityStatusIcon = 'medium';
+      visibilityInfo.push({status: 'Average', icon: 'medium'});
     }
     else if(visibility >= 10) {
-      this.visibilityStatus = 'Good';
-      this.visibilityStatusIcon = 'yes';
+      visibilityInfo.push({status: 'Good', icon: 'yes'});
     }
+
+    return visibilityInfo;
   }
 
   setAirStatus(airId: number) {
+    let airInfo: {status: string, icon: string}[]= [];
+
     if(airId === 1) {
-      this.airStatus = 'Good';
-      this.airStatusIcon = 'yes';
+      airInfo.push({status: 'Good', icon: 'yes'});
     }else if(airId === 2) {
-      this.airStatus = 'Moderate';
-      this.airStatusIcon = 'medium';
+      airInfo.push({status: 'Moderate', icon: 'medium'});
     }else if(airId >= 3) {
-      this.airStatus = 'Unhealty';
-      this.airStatusIcon = 'no';
+      airInfo.push({status: 'Unhealty', icon: 'no'});
     }else {
-      this.airStatus = 'No data';
+      airInfo.push({status: 'No data', icon: 'no'});
+    }
+
+    return airInfo;
+  }
+
+  progresBarChange(uv: number) {
+    let min = -45;
+    let max = 16;
+    let color;
+    let y = min + (uv/max) *180;
+    if(uv <= 2) {
+      color = 'lime';
+    }else if(uv > 2 && uv <= 5) {
+      color = 'yellow';
+    }else if(uv > 5 && uv <= 7) {
+      color = 'orange';
+    }else if(uv > 7 && uv <= 10) {
+      color = 'red';
+    }else if(uv > 10) {
+      color = 'purple';
+    }
+    if(document.getElementById('progres-1')) {
+      document.getElementById('progres-1')!.style.transform = `rotate(${y}deg)`
+      document.getElementById('progres-1')!.style.borderColor = `#ddd #ddd ${color} ${color}`;
+    }else {
+      console.log('Error with getElById progress-1');
+    }
+  }
+
+  progresBar(uv: number) {
+    let min = -45;
+    let max = 16;
+    let color;
+    let y = min + (uv/max) *180;
+    if(uv <= 2) {
+      color = 'lime';
+    }else if(uv > 2 && uv <= 5) {
+      color = 'yellow';
+    }else if(uv > 5 && uv <= 7) {
+      color = 'orange';
+    }else if(uv > 7 && uv <= 10) {
+      color = 'red';
+    }else if(uv > 10) {
+      color = 'purple';
+    }
+    if(document.getElementById('progres-2')){
+      document.getElementById('progres-2')!.style.transform = `rotate(${y}deg)`
+      document.getElementById('progres-2')!.style.borderColor = `#ddd #ddd ${color} ${color}`;
+    }else {
+      console.log('Error with getElById progress-2');
     }
   }
 }
